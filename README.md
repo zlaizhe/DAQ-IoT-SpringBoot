@@ -2,7 +2,16 @@
 DAQ-IoT-SSM的升级版
 #### 更新内容
 * 1.框架迁移到SpringBoot+MyBatis，相比于SSM版的项目大大减少了xml配置，仅在application.yml文件中配置了少量信息
-
+* 2.添加Redis缓存，在以下部分提供缓存支持：
+    * 当查询当个Gateway、sensor、sensorClassify时使用查询缓存，查询过的数据会存入缓存，提高查询效率
+    * 传感器提交Data数据时使用添加缓存，不直接操作数据库，而是将Data添加到Redis中形成缓存队列，提高并发效率
+    * 将用户登录信息不直接存入session，而是存入Redis缓存，以实现分布式session共享
+* 3.提交Data数据的异步任务支持。通过线程池实现异步地将Redis中缓存队列添加到数据库，减少数据库的写入压力。
+* 4.nginx与tomcat集群支持：
+   * 通过SpringBoot的内置Tomcat方便了Tomcat集群的部署
+   * 提供查看IP和端口API方便进行nginx反向代理和负载均衡的部署和测试
+   * 分布式session共享避免了集群环境下用户登录信息失效的问题
+    
 ### 注意：
 * 前端页面仅供测试，本系统主要是为底层传感网络提供数据提交和管理的平台。
 * 默认请求路径 http://localhost:8080/iot/   其中iot是项目虚拟路径，8080为SpringBoot内置Tomcat端口，均可在application.yml文件中修改。
@@ -87,4 +96,4 @@ DAQ-IoT-SSM的升级版
 |下载一个传感器及其所有数据的xls表格|iot/api/file/sensor/{id}|GET|传感器id|
 
 #### 其他
-本项目中已经将Spring框架整合了Redis，并且配置好了RedisTemplate，但是实际运用中遇到了一些bug，所以暂时没有调用RedisTemplate，有待以后更新和优化。
+由于目前所有传感器提交的数据都是存在同一个表中，项目运行时间长了之后单表数据量会非常大，影响数据库效率，以后考虑加入分库分表功能。
