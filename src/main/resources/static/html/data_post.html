@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>模拟传感器数据提交</title>
+    <script src="../js/jquery-3.4.1.min.js"></script>
+    <script src="../js/dateformat.js"></script>
+    <script>
+        function sendPostRequest() {
+            var url;
+            var now = new Date();
+            var sensor_id = $("#sensor_id").val();
+            var op = $("#sel").val();
+            var data;
+            if (op == "提交单个数据") {
+                url = "../api/data/receive";
+                var val = Number.parseFloat($("#data").html());
+                data = {data: val, time: now.Format("yyyy-MM-dd hh:mm:ss"), sensor_id: sensor_id};
+            } else {
+                url = "../api/data/receiveAll";
+                data = [];
+                var dataStr = $("#datas").html().split(" ");
+                for (var i = 0; i < dataStr.length; i++) {
+                    var val = Number.parseFloat(dataStr[i]);
+                    var date = new Date(now.getTime() - 1000 * (dataStr.length - 1 - i));//每个数据时间间隔1秒
+                    data.push({data: val, time: date.Format("yyyy-MM-dd hh:mm:ss"), sensor_id: sensor_id});
+                }
+            }
+
+            $.ajax({
+                method: "POST",
+                url: url,
+                //dataType:"json",
+                contentType: "application/json",
+                data: JSON.stringify(data),//需将原生json对象字符串化
+                success: function (responseData) {
+                    $("#status").html(responseData.status + "");
+                    $("#status").css("color", responseData.status ? "green" : "red");
+                    $("#message").html(responseData.message + "");
+                }
+            });
+        }
+
+        $(function () {
+            setInterval(function () {
+                var data = 100 * Math.random();
+                $("#data").html(new String(data).substring(0, 5));//模拟传感器数值实时变化
+                $("#datas").html(new String(data - 4).substring(0, 5) + " " +
+                    new String(data - 3).substring(0, 5) + " " +
+                    new String(data - 2).substring(0, 5) + " " +
+                    new String(data - 1).substring(0, 5) + " " +
+                    new String(data).substring(0, 5));
+            }, 1000)
+        });
+    </script>
+</head>
+<body>
+<div>
+    传感器id=<input id="sensor_id" type="number" value="1"><br>
+    <select id="sel">
+        <option selected="selected">提交单个数据</option>
+        <option>提交批量数据</option>
+    </select>
+    <hr>
+    <ul>
+        <li>实时数值data=<span id="data">0</span>（提交单个数据，时间为当前时间）</li>
+        <li>实时数值data=<span id="datas">0 0 0 0 0</span>（提交5个批量数据，时间为当前时间前5秒）</li>
+    </ul>
+</div>
+<h3>data表单</h3>
+<form id="form"></form>
+<hr>
+返回消息：
+<div>
+    <strong>
+        | status: <span id="status" style="color: green"></span> | message: <span style="color: blue"
+                                                                                  id="message"></span>|
+    </strong>
+</div>
+该api不提供返回数据
+<hr>
+提交传感器data数据：
+<button onclick="sendPostRequest()">提交POST请求</button>
+</body>
+</html>

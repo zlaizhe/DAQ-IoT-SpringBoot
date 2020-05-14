@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>下载页面</title>
+    <script src="../js/jquery-3.4.1.min.js"></script>
+    <script>
+        $(function () {
+            $("#btn1").click(function () {
+                var gid = $("#gid").val();
+                location.href = "../api/file/gateway/" + gid;
+            });
+            $("#btn2").click(function () {
+                var sid = $("#sid").val();
+                location.href = "../api/file/sensor/" + sid;
+            });
+        })
+    </script>
+</head>
+<body>
+<h2>下载相关</h2>
+<hr>
+<ul>
+    <li><a href="../api/file/test">下载测试xls文件</a></li>
+    <li><a href="../api/file/gateway">下载所有网关信息的xls文件</a></li>
+    <li><a href="../api/file/sensor">下载所有传感器信息的xls文件</a></li>
+    <li>网关id = <input id="gid" type="number" value="1" style="width: 50px">
+        <button id="btn1">下载单个网关信息（包含传感器信息）的xls文件</button>
+    </li>
+    <li>传感器id = <input id="sid" type="number" value="1" style="width: 50px">
+        <button id="btn2">下载单个传感器信息（包含传感器数据）的xls文件</button>
+    </li>
+</ul>
+</body>
+</html>

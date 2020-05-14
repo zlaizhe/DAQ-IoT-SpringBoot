@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>传感器分类</title>
+    <script src="../js/jquery-3.4.1.min.js"></script>
+    <script>
+        var url = "../api/classify";
+
+        //使用ajax请求实习restful风格四种请求方式
+        function sendPostRequest() {
+            if (!window.confirm("确认添加？")) {
+                return;
+            }
+            var formParam = $("#form").serialize();
+            $.post(url, formParam, function (json) {
+                showResponseData(json);
+                if (json.status) {
+                    refreshForm(json);
+                }
+            });
+        }
+
+        function sendGetRequest() {
+            var id = $("#id").val();
+            $.get(url + "/" + id, {}, function (json) {
+                showResponseData(json);
+                if (json.status) {
+                    refreshForm(json);
+                }
+            });
+        }
+
+        function refreshForm(json) {
+            var classify = json.data;
+            $("#id").val(classify.id);
+            $("#name").val(classify.name);
+        }
+
+        function clearForm() {
+            $("#id").val("");
+            $("#name").val("");
+        }
+
+        function showResponseData(json) {
+            $("#status").html(json.status + "");
+            $("#status").css("color", json.status ? "green" : "red");
+            $("#message").html(json.message);
+
+            var str = "<tr><th>id</th><th>name</th></tr>";
+            var classify = json.data;
+            if (classify == null) {
+                //响应错误
+            } else if (classify.length == undefined) {//只有单个数据
+                str += "<tr><td>" + classify.id + "</td><td>" + classify.name + "</td></tr>";
+            } else {//类型为数组，有多个数据
+                for (var i = 0; i < classify.length; i++) {
+                    var c = classify[i];
+                    str += "<tr><td>" + c.id + "</td><td>" + c.name + "</td></tr>";
+                }
+            }
+            $("#table").html(str);
+        }
+    </script>
+</head>
+<body>
+<h3>SensorClassify表单</h3>
+<form id="form">
+    id：<input id="id" type="text" name="id" value="1">(添加时不必填写)<br>
+    name：<input id="name" type="text" name="name"><br>
+</form>
+<hr>
+返回消息：
+<div>
+    <strong>
+        | status: <span id="status" style="color: red"></span> | message: <span style="color: blue" id="message"></span>|
+    </strong>
+</div>
+返回数据：
+<table border="1" id="table">
+</table>
+<hr>
+根据id查询分类：
+<button onclick="sendGetRequest()">提交GET请求</button>
+(不填写id表示查询所有)<br>
+新添加一个分类：
+<button onclick="sendPostRequest()">提交POST请求</button>
+(成功后回显信息)<br>
+</body>
+</html>

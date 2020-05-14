@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取传感器数据</title>
+    <script type="text/javascript" src="../js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../js/dateformat.js"></script>
+    <script type="text/javascript" src="../js/echarts.min.js"></script>
+    <script>
+        function sendPostRequest(id) {
+            var url = "../api/data/sensor/" + id;
+            $.get(url, {}, function (responseData) {
+                    $("#status").html(responseData.status + "");
+                    $("#status").css("color", responseData.status ? "green" : "red");
+                    $("#message").html(responseData.message + "");
+
+                    var xdata = [];
+                    var ydata = [];
+                    var str = "<tr><th>编号</th><th>数值</th><th>时间</th></tr>";
+                    if (!responseData.status) {
+                        $("#res").html("");
+                    } else {
+                        var datas = responseData.data;
+                        for (var i = 0; i < datas.length; i++) {
+                            str += "<tr><td>" + datas[i].id + "</td><td>" + datas[i].data + "</td><td>" + datas[i].time + "</td></tr>";
+                            xdata.push(datas[i].time);
+                            ydata.push(datas[i].data);
+                        }
+                    }
+                    $("#res").html(str);
+                    refrechEcharts(xdata, ydata);
+                }
+            );
+        }
+
+        function refrechEcharts(xdata, ydata) {
+            var dom = document.getElementById("container");
+            var myChart = echarts.init(dom);
+            var option = {
+                xAxis: {
+                    type: 'category',
+                    data: xdata
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: ydata,
+                    type: 'line'
+                }]
+            };
+            myChart.setOption(option, true);
+        }
+
+        $(function () {
+            $("#btn").click(function () {
+                sendPostRequest($("#sensor_id").val());
+            });
+        });
+    </script>
+</head>
+<body>
+传感器id：<input type="number" id="sensor_id" value="1">
+<button id="btn">提交GET请求</button>
+<hr>
+返回消息：
+<div>
+    <strong>| status: <span id="status" style="color: green"></span> | message: <span style="color: blue"
+                                                                                      id="message"></span>|</strong>
+</div>
+<table id="res" border="1">
+</table>
+<hr>
+<!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+<div id="container" style="height:400px;width: 600px"></div>
+</body>
+</html>

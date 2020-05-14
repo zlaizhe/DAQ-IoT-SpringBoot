@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>网关</title>
+    <script src="../js/jquery-3.4.1.min.js"></script>
+    <script>
+        var url = "../api/gateway";
+
+        //使用ajax请求实习restful风格四种请求方式
+        function sendPostRequest() {
+            if (!window.confirm("确认添加？")) {
+                return;
+            }
+            var formParam = $("#form").serialize();
+            $.post(url, formParam, function (json) {
+                showResponseData(json);
+                if (json.status) {
+                    refreshForm(json);
+                }
+            });
+        }
+
+        function sendPutRequest() {
+            if (!window.confirm("确认更改？")) {
+                return;
+            }
+            var formParam = $("#form").serialize();
+            $.ajax({
+                url: url,
+                type: "PUT",
+                data: formParam,
+                success: function (json) {
+                    showResponseData(json);
+                    if (json.status) {
+                        refreshForm(json);
+                    }
+                }
+            });
+        }
+
+        function sendDeleteRequest() {
+            if (!window.confirm("确认删除？")) {
+                return;
+            }
+            var id = $("#id").val();
+            $.ajax({
+                url: url + "/" + id,
+                type: "DELETE",
+                data: {},
+                success: function (json) {
+                    showResponseData(json);
+                    if (json.status) {
+                        clearForm();
+                    }
+                }
+            });
+        }
+
+        function sendGetRequest() {
+            var id = $("#id").val();
+            $.get(url + "/" + id, {}, function (json) {
+                showResponseData(json);
+                if (json.status) {
+                    refreshForm(json);
+                }
+            });
+        }
+
+        function refreshForm(json) {
+            var gateway = json.data;
+            $("#id").val(gateway.id);
+            $("#ip").val(gateway.ip);
+            $("#port").val(gateway.port);
+            $("#description").val(gateway.description);
+            $("#location").val(gateway.location);
+        }
+
+        function clearForm() {
+            $("#id").val("");
+            $("#ip").val("");
+            $("#port").val("");
+            $("#description").val("");
+            $("#location").val("");
+        }
+
+        function showResponseData(json) {
+            $("#status").html(json.status + "");
+            $("#status").css("color", json.status ? "green" : "red");
+            $("#message").html(json.message);
+
+            var str = "<tr><th>id</th><th>ip</th><th>port</th><th>description</th><th>location</th></tr>";
+            var gateways = json.data;
+            if (gateways == null) {
+                //响应错误
+            } else if (gateways.length == undefined) {//只有单个数据
+                var gateway = gateways;
+                str += "<tr><td>" + gateway.id + "</td><td>" + gateway.ip + "</td><td>" + gateway.port + "</td><td>" + gateway.description + "</td><td>" + gateway.location + "</td></tr>";
+            } else {//类型为数组，有多个数据
+                for (var i = 0; i < gateways.length; i++) {
+                    var gateway = gateways[i];
+                    str += "<tr><td>" + gateway.id + "</td><td>" + gateway.ip + "</td><td>" + gateway.port + "</td><td>" + gateway.description + "</td><td>" + gateway.location + "</td></tr>";
+                }
+            }
+            $("#table").html(str);
+        }
+    </script>
+</head>
+<body>
+<h3>gateway表单</h3>
+<form id="form">
+    id：<input id="id" type="text" name="id" value="1">(添加时不必填写)<br>
+    ip：<input id="ip" type="text" name="ip"><br>
+    port：<input id="port" type="text" name="port"><br>
+    描述：<input id="description" type="text" name="description"><br>
+    位置：<input id="location" type="text" name="location"><br>
+</form>
+<hr>
+返回消息：
+<div>
+    <strong>
+        | status: <span id="status" style="color: red"></span> | message: <span style="color: blue" id="message"></span>|
+    </strong>
+</div>
+返回数据：
+<table border="1" id="table">
+</table>
+<hr>
+根据id查询网关：
+<button onclick="sendGetRequest()">提交GET请求</button>
+(不填写id表示查询所有)<br>
+新添加一个网关：
+<button onclick="sendPostRequest()">提交POST请求</button>
+(成功后回显信息)<br>
+根据id更新网关：
+<button onclick="sendPutRequest()">提交PUT请求</button>
+(成功后回显信息)<br>
+根据id删除网关：
+<button onclick="sendDeleteRequest()">提交DELETE请求</button>
+(成功后清空输入框)<br>
+</body>
+</html>

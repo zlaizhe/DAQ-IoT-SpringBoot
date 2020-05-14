@@ -1,0 +1,17 @@
+server:
+  port: 8081 # 内置tomcat端口
+  servlet:
+    context-path: /iot # 项目部署虚拟路径
+
+spring:
+  datasource: # hikari pool 数据源
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/iot
+    username: root
+    password: root
+  redis:
+    host: 127.0.0.1
+    port: 6379
+
+mybatis:
+  type-aliases-package: com.my.domain # pojo别名扫描
