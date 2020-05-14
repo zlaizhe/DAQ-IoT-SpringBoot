@@ -3,7 +3,7 @@ DAQ-IoT-SSM的升级版
 #### 更新内容
 * 1.框架迁移到SpringBoot+MyBatis，相比于SSM版的项目大大减少了xml配置，仅在application.yml文件中配置了少量信息
 * 2.添加Redis缓存，在以下部分提供缓存支持：
-    * 当查询当个Gateway、sensor、sensorClassify时使用查询缓存，查询过的数据会存入缓存，提高查询效率
+    * 当查询单个Gateway、sensor、sensorClassify时使用查询缓存，从数据库查询过的数据会存入缓存，提高查询效率
     * 传感器提交Data数据时使用添加缓存，不直接操作数据库，而是将Data添加到Redis中形成缓存队列，提高并发效率
     * 将用户登录信息不直接存入session，而是存入Redis缓存，以实现分布式session共享
 * 3.提交Data数据的异步任务支持。通过线程池实现异步地将Redis中缓存队列添加到数据库，减少数据库的写入压力。
