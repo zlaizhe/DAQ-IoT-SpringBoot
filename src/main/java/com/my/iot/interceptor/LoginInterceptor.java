@@ -27,13 +27,15 @@ public class LoginInterceptor implements HandlerInterceptor {
         String sessionId = getJSESSIONID(request);
         response.setContentType("text/json;charset=UTF-8");
         if (sessionId == null) {//请求中没有JSESSIONID，不放行
-            response.getWriter().write(json);
+            //response.getWriter().write(json);
+            response.sendRedirect("/html/login.html");
             return false;
         }
         //从redis中查询登录用户
         User login_user = (User) redisTemplate.opsForHash().get(sessionId, UserController.LOGIN_USER);
         if (login_user == null) {  //未登录，不放行
-            response.getWriter().write(json);
+            //response.getWriter().write(json);
+            response.sendRedirect("/html/login.html");
             return false;
         } else {
             return true;//登陆后放行

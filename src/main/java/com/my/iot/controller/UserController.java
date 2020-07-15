@@ -29,7 +29,7 @@ public class UserController {
         //调用service完成注册
         user.setPassword(Md5Util.encodeByMd5(user.getPassword()));//对密码加密
         boolean flag = userService.regist(user);
-        return new Result(flag, flag ? "regist success" : "regist failed", null);
+        return new Result(flag, flag ? "regist success" : "regist failed, username existed", null);
     }
 
     @PostMapping("/login")

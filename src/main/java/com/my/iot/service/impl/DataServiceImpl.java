@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 @Service("dataService")
@@ -36,6 +37,11 @@ public class DataServiceImpl implements DataService {
     @Override
     public List<Data> findBySensorId(int sensor_id) {
         return dataMapper.findBySensorId(sensor_id);
+    }
+
+    @Override
+    public List<Data> findBySensorIdInDatetime(Integer sensor_id, Date datetime1, Date datetime2) {
+        return dataMapper.findBySensorIdInDatetime(sensor_id, datetime1, datetime2);
     }
 
     @Override

@@ -41,4 +41,11 @@ public interface SensorMapper {
             @Result(property = "datas", column = "id", many = @Many(select = "com.my.iot.mapper.DataMapper.findBySensorId", fetchType = FetchType.DEFAULT))//一对多封装datas属性
     })
     public Sensor findByIdWithDatas(int id);
+
+    @Select("<script> " +
+                "select * from tb_sensor where 1=1 " +
+                "<if test='gateway_id!=null'>and gate_id = #{gateway_id}</if> "+
+                "<if test='classify_id!=null'>and classify_id = #{classify_id}</if> "+
+            "</script>")//使用动态sql，如果参数为空，就不拼接条件
+    public List<Sensor> findByGatewayIdAndClassifyId(@Param("gateway_id") Integer gateway_id, @Param("classify_id") Integer classify_id);
 }

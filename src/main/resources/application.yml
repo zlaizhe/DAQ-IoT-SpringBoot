@@ -1,7 +1,7 @@
 server:
   port: 8080 # 内置tomcat端口
   servlet:
-    context-path: /iot # 项目部署虚拟路径
+    context-path: / # 项目部署虚拟路径
 
 spring:
   datasource: # hikari pool 数据源

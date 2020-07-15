@@ -16,12 +16,14 @@ public class WebAppConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
+                .addPathPatterns("/html/**","/index.html")
                 .addPathPatterns("/api/**")//拦截所有路径
         .excludePathPatterns(
                 "/api/address",
                 "/api/home",
                 "/api/user/login",
                 "/api/user/info",
-                "/api/user/exit");//放行路径
+                "/api/user/exit")
+        .excludePathPatterns("/html/login.html");//放行路径
     }
 }

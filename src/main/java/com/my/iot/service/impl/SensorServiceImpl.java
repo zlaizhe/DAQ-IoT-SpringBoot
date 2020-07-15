@@ -75,6 +75,11 @@ public class SensorServiceImpl implements SensorService {
     }
 
     @Override
+    public List<Sensor> findByGatewayIdAndClassifyId(Integer gateway_id,Integer classify_id) {
+        return sensorMapper.findByGatewayIdAndClassifyId(gateway_id,classify_id);
+    }
+
+    @Override
     public Sensor findByIdWithDatas(int id) {
         return sensorMapper.findByIdWithDatas(id);
     }

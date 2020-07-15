@@ -3,140 +3,396 @@
 <head>
     <meta charset="UTF-8">
     <title>网关</title>
-    <script src="../js/jquery-3.4.1.min.js"></script>
-    <script>
-        var url = "../api/gateway";
-
-        //使用ajax请求实习restful风格四种请求方式
-        function sendPostRequest() {
-            if (!window.confirm("确认添加？")) {
-                return;
-            }
-            var formParam = $("#form").serialize();
-            $.post(url, formParam, function (json) {
-                showResponseData(json);
-                if (json.status) {
-                    refreshForm(json);
-                }
-            });
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!--axios-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        /*container*/
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            line-height: 60px;
         }
 
-        function sendPutRequest() {
-            if (!window.confirm("确认更改？")) {
-                return;
-            }
-            var formParam = $("#form").serialize();
-            $.ajax({
-                url: url,
-                type: "PUT",
-                data: formParam,
-                success: function (json) {
-                    showResponseData(json);
-                    if (json.status) {
-                        refreshForm(json);
-                    }
-                }
-            });
+        .el-aside {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            line-height: 200px;
         }
 
-        function sendDeleteRequest() {
-            if (!window.confirm("确认删除？")) {
-                return;
-            }
-            var id = $("#id").val();
-            $.ajax({
-                url: url + "/" + id,
-                type: "DELETE",
-                data: {},
-                success: function (json) {
-                    showResponseData(json);
-                    if (json.status) {
-                        clearForm();
-                    }
-                }
-            });
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+            /*line-height: 160px;*/
         }
 
-        function sendGetRequest() {
-            var id = $("#id").val();
-            $.get(url + "/" + id, {}, function (json) {
-                showResponseData(json);
-                if (json.status) {
-                    refreshForm(json);
-                }
-            });
+        body > .el-container {
+            margin-bottom: 40px;
         }
 
-        function refreshForm(json) {
-            var gateway = json.data;
-            $("#id").val(gateway.id);
-            $("#ip").val(gateway.ip);
-            $("#port").val(gateway.port);
-            $("#description").val(gateway.description);
-            $("#location").val(gateway.location);
+        .el-container:nth-child(5) .el-aside,
+        .el-container:nth-child(6) .el-aside {
+            line-height: 260px;
         }
 
-        function clearForm() {
-            $("#id").val("");
-            $("#ip").val("");
-            $("#port").val("");
-            $("#description").val("");
-            $("#location").val("");
+        .el-container:nth-child(7) .el-aside {
+            line-height: 320px;
         }
 
-        function showResponseData(json) {
-            $("#status").html(json.status + "");
-            $("#status").css("color", json.status ? "green" : "red");
-            $("#message").html(json.message);
-
-            var str = "<tr><th>id</th><th>ip</th><th>port</th><th>description</th><th>location</th></tr>";
-            var gateways = json.data;
-            if (gateways == null) {
-                //响应错误
-            } else if (gateways.length == undefined) {//只有单个数据
-                var gateway = gateways;
-                str += "<tr><td>" + gateway.id + "</td><td>" + gateway.ip + "</td><td>" + gateway.port + "</td><td>" + gateway.description + "</td><td>" + gateway.location + "</td></tr>";
-            } else {//类型为数组，有多个数据
-                for (var i = 0; i < gateways.length; i++) {
-                    var gateway = gateways[i];
-                    str += "<tr><td>" + gateway.id + "</td><td>" + gateway.ip + "</td><td>" + gateway.port + "</td><td>" + gateway.description + "</td><td>" + gateway.location + "</td></tr>";
-                }
-            }
-            $("#table").html(str);
+        /**/
+        .el-carousel__item h3 {
+            color: #475669;
+            font-size: 14px;
+            opacity: 0.75;
+            line-height: 150px;
+            margin: 0;
         }
-    </script>
+
+        .el-carousel__item:nth-child(2n) {
+            background-color: #99a9bf;
+        }
+
+        .el-carousel__item:nth-child(2n+1) {
+            background-color: #d3dce6;
+        }
+
+        /**/
+        .el-row {
+            margin-bottom: 20px;
+
+        &
+        :last-child {
+            margin-bottom: 0;
+        }
+
+        }
+        .el-col {
+            border-radius: 4px;
+        }
+
+        .bg-purple-dark {
+            background: #99a9bf;
+        }
+
+        .bg-purple {
+            background: #d3dce6;
+        }
+
+        .bg-purple-light {
+            background: #e5e9f2;
+        }
+
+        .grid-content {
+            border-radius: 4px;
+            min-height: 100px;
+        }
+
+        .row-bg {
+            padding: 10px 0;
+            background-color: #f9fafc;
+        }
+    </style>
 </head>
-<body>
-<h3>gateway表单</h3>
-<form id="form">
-    id：<input id="id" type="text" name="id" value="1">(添加时不必填写)<br>
-    ip：<input id="ip" type="text" name="ip"><br>
-    port：<input id="port" type="text" name="port"><br>
-    描述：<input id="description" type="text" name="description"><br>
-    位置：<input id="location" type="text" name="location"><br>
-</form>
-<hr>
-返回消息：
-<div>
-    <strong>
-        | status: <span id="status" style="color: red"></span> | message: <span style="color: blue" id="message"></span>|
-    </strong>
+<body style="margin: 0">
+<div id="app">
+    <el-container>
+        <el-header style="padding-left: 0;padding-right: 0;">
+            <el-menu :default-active="activeIndex"
+                     class="el-menu-demo"
+                     mode="horizontal"
+                     @select="handleSelect"
+                     background-color="#545c64"
+                     text-color="#fff"
+                     text-align="center"
+                     active-text-color="#ffd04b"
+                     style="width:100%;">
+                <el-menu-item index="1" onclick="javascript:location.href='../index.html'">首页</el-menu-item>
+                <el-menu-item index="2">自定义</el-menu-item>
+                <el-menu-item index="3" disabled>消息中心</el-menu-item>
+                <el-menu-item index="4"><a href="https://www.ele.me" target="_blank">订单管理</a></el-menu-item>
+                <el-submenu index="5">
+                    <template slot="title">{{loginUserInfo}}</template>
+                    <el-menu-item index="2-1" onclick="javascript:location.href='./basicInformation.html'">个人信息
+                    </el-menu-item>
+                    <el-menu-item index="2-2" onclick="javascript:location.href='./changePassword.html'">修改密码
+                    </el-menu-item>
+                    <el-menu-item index="2-3" v-on:click="exit">退出登录</el-menu-item>
+                </el-submenu>
+            </el-menu>
+        </el-header>
+        <el-container>
+            <el-aside width="15%"></el-aside>
+            <el-main>
+                <el-alert title="网关管理页面，支持对每个网关的管理操作" type="info" center show-icon>
+                </el-alert>
+                <el-divider></el-divider>
+                <el-row>
+                    <el-button round @click="getAllGateway()">查询网关</el-button>
+                    <el-button type="primary" @click="dialogFormVisible = true" round>添加网关</el-button>
+                </el-row>
+                <el-divider></el-divider>
+                <el-table :data="tableData.slice((currentPage-1)*pageSize, currentPage*pageSize)" border
+                          style="width: 100%">
+                    <el-table-column prop="id" label="编号" width="160"></el-table-column>
+                    <el-table-column prop="ip" label="IP" width="160"></el-table-column>
+                    <el-table-column prop="port" label="端口" width="160"></el-table-column>
+                    <el-table-column prop="description" label="详细信息" width="160"></el-table-column>
+                    <el-table-column prop="location" label="位置" width="300"></el-table-column>
+                    <el-table-column label="操作" width="240">
+                        <template slot-scope="scope">
+                            <el-button @click="handleClick(scope.row)" type="info" size="small">查看</el-button>
+                            <el-button @click="showUpdateGatewayDialog(scope.row)" type="warning" size="small">编辑
+                            </el-button>
+                            <!--                                <el-button slot="reference" type="danger" @click="deleteGateway(scope.row.id)" size="small">删除</el-button>-->
+                            <el-button type="danger" size="small" @click="open(scope.row.id)">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <el-divider></el-divider>
+                <el-pagination background
+                               @size-change="handleSizeChange"
+                               @current-change="handleCurrentChange"
+                               :current-page.sync="currentPage"
+                               :page-size="pageSize"
+                               layout="total, prev, pager, next"
+                               :total="total">
+                </el-pagination>
+            </el-main>
+            <el-aside width="15%"></el-aside>
+        </el-container>
+        <el-footer>© 2019-2020 . Powered by CUG |
+            <el-link type="primary" href="/api/address" :underline="false">服务器状态</el-link>
+            |
+            <el-link type="primary" href="/api/home" :underline="false">测试API</el-link>
+        </el-footer>
+    </el-container>
+
+    <el-dialog title="添加网关" :visible.sync="dialogFormVisible">
+        <el-form label-width="80px" :model="form">
+            <el-form-item label="IP" :label-width="formLabelWidth">
+                <el-input v-model="form.ip"></el-input>
+            </el-form-item>
+            <el-form-item label="端口" :label-width="formLabelWidth">
+                <el-input v-model="form.port"></el-input>
+            </el-form-item>
+            <el-form-item label="详细信息" :label-width="formLabelWidth">
+                <el-input v-model="form.description"></el-input>
+            </el-form-item>
+            <el-form-item label="位置" :label-width="formLabelWidth">
+                <el-input v-model="form.location"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="addGateway(form)">添 加</el-button>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="编辑网关" :visible.sync="dialogFormVisible2">
+        <el-form label-width="80px" :model="form2">
+            <el-form-item label="编号" :label-width="formLabelWidth">
+                <el-input disabled v-model="form2.id"></el-input>
+            </el-form-item>
+            <el-form-item label="IP" :label-width="formLabelWidth">
+                <el-input v-model="form2.ip"></el-input>
+            </el-form-item>
+            <el-form-item label="端口" :label-width="formLabelWidth">
+                <el-input v-model="form2.port"></el-input>
+            </el-form-item>
+            <el-form-item label="详细信息" :label-width="formLabelWidth">
+                <el-input v-model="form2.description"></el-input>
+            </el-form-item>
+            <el-form-item label="位置" :label-width="formLabelWidth">
+                <el-input v-model="form2.location"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible2 = false">取 消</el-button>
+            <el-button type="primary" @click="updateGateway(form2)">编 辑</el-button>
+        </div>
+    </el-dialog>
 </div>
-返回数据：
-<table border="1" id="table">
-</table>
-<hr>
-根据id查询网关：
-<button onclick="sendGetRequest()">提交GET请求</button>
-(不填写id表示查询所有)<br>
-新添加一个网关：
-<button onclick="sendPostRequest()">提交POST请求</button>
-(成功后回显信息)<br>
-根据id更新网关：
-<button onclick="sendPutRequest()">提交PUT请求</button>
-(成功后回显信息)<br>
-根据id删除网关：
-<button onclick="sendDeleteRequest()">提交DELETE请求</button>
-(成功后清空输入框)<br>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            activeIndex: '1',
+            url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
+            loginUserInfo: '游客',
+            tableData: [],
+            //
+            dialogFormVisible: false, //添加窗口
+            form: { //添加表单
+                ip: '',
+                port: '',
+                description: '',
+                location: '',
+            },
+            dialogFormVisible2: false, //编辑窗口
+            form2: { //编辑表单
+                id: null,
+                ip: '',
+                port: '',
+                description: '',
+                location: '',
+            },
+            formLabelWidth: '120px',
+            //
+            pageSize: 5,
+            currentPage: 1,
+            total: null,
+        },
+        methods: {
+            test() {
+                console.log("test");
+            },
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            exit() {
+                var that = this;
+                axios.get("/api/user/exit").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.$message({type: 'success', message: '已退出登录'});
+                        location.href = '/html/login.html';
+                    } else {
+                        that.$message({type: 'warning', message: '您尚未登录'});
+                    }
+                });
+            },
+            getLoginUser() {
+                var that = this;
+                axios.get("/api/user/info").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        var data = result.data;
+                        that.loginUserInfo = data.nickname == null ? data.username : data.nickname;
+                    }
+                });
+            },
+            //
+            handleClick(row) {
+                console.log(row);
+            },
+            //
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                console.log(`当前页: ${val}`);
+            },
+            //
+            getAllGateway() {
+                var that = this;
+                axios.get("/api/gateway").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.tableData = result.data;
+                        that.total = result.data.length;
+                    }
+                });
+            },
+            addGateway(gateway) {
+                var that = this;
+                axios({
+                    method: "post",
+                    url: "/api/gateway",
+                    params: {
+                        ip: gateway.ip,
+                        port: gateway.port,
+                        description: gateway.description,
+                        location: gateway.location,
+                    },
+                }).then(function (response) {
+                    if (response.data.status) {
+                        that.$message({type: 'success', message: response.data.message});
+                        that.tableData.push(response.data.data);
+                        that.dialogFormVisible = false;//不显示添加框
+                    } else {
+                        that.$message({type: 'error', message: response.data.message});
+                    }
+                });
+            },
+            showUpdateGatewayDialog(gateway) {
+                this.dialogFormVisible2 = true;
+                this.form2 = gateway;
+            },
+            updateGateway(gateway) {
+                var that = this;
+                axios({
+                    method: "put",
+                    url: "/api/gateway",
+                    params: {
+                        id: gateway.id,
+                        ip: gateway.ip,
+                        port: gateway.port,
+                        description: gateway.description,
+                        location: gateway.location,
+                    },
+                }).then(function (response) {
+                    if (response.data.status) {
+                        that.$message({type: 'success', message: response.data.message});
+                        var result = response.data;
+                        var updateIndex = 0;
+                        that.tableData.forEach(function (item, index) {
+                            if (item.id == result.data.id) {//找到修改的行在tableData数组中的索引
+                                updateIndex = index;
+                            }
+                        });
+                        that.tableData.splice(updateIndex, 1, result.data);//修改表格数据
+                        that.dialogFormVisible2 = false;//不显示更新框
+                    } else {
+                        that.$message({type: 'error', message: response.data.message});
+                    }
+                });
+            },
+            open(gatewayId) {
+                this.$confirm('此操作将永久删除该信息, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteGateway(gatewayId);
+                }).catch(() => {
+                });
+            },
+            deleteGateway(gatewayId) {
+                var that = this;
+                axios({
+                    method: "delete",
+                    url: "/api/gateway/" + gatewayId,
+                }).then(function (response) {
+                    if (response.data.status) {
+                        that.$message({type: 'success', message: response.data.message});
+                        var deleteIndex = 0;
+                        that.tableData.forEach(function (item, index) {
+                            if (item.id == gatewayId) {//找到修改的行在tableData数组中的索引
+                                deleteIndex = index;
+                            }
+                        });
+                        that.tableData.splice(deleteIndex, 1);//删除表格数据
+                    } else {
+                        that.$message({type: 'error', message: response.data.message});
+                    }
+                });
+            }
+        }
+    });
+    window.onload = function () {
+        app.getLoginUser();
+        app.getAllGateway();
+    }
+</script>
 </body>
 </html>

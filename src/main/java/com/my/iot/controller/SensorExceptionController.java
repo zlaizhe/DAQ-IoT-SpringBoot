@@ -1,5 +1,6 @@
 package com.my.iot.controller;
 
+import com.my.iot.domain.GatewayException;
 import com.my.iot.domain.PageBean;
 import com.my.iot.domain.Result;
 import com.my.iot.domain.SensorException;
@@ -34,6 +35,11 @@ public class SensorExceptionController {
         long dateFromTamp = Long.parseLong(s[0]);
         long dateToTamp = Long.parseLong(s[1]);
         List<SensorException> sensorExceptions = sensorExceptionService.findByTime(new Date(dateFromTamp), new Date(dateToTamp));
+        return new Result(true, "get success", sensorExceptions);
+    }
+    @GetMapping("/time")
+    public Result getGatewayExceptionByDateTime(Date datetime1, Date datetime2) {//查询一段时间的异常
+        List<SensorException> sensorExceptions = sensorExceptionService.findByTime(datetime1, datetime2);
         return new Result(true, "get success", sensorExceptions);
     }
 }

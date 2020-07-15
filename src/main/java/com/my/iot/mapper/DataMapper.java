@@ -1,12 +1,10 @@
 package com.my.iot.mapper;
 
 import com.my.iot.domain.Data;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -25,4 +23,7 @@ public interface DataMapper {
 
     @Select("delete from tb_data where sensor_id = #{value}")
     public void deleteBySensorId(int sensor_id);
+
+    @Select("select * from tb_data where sensor_id = #{sensor_id} and time between #{datetime1} and #{datetime2}")
+    List<Data> findBySensorIdInDatetime(@Param("sensor_id") Integer sensor_id, Date datetime1, Date datetime2);
 }

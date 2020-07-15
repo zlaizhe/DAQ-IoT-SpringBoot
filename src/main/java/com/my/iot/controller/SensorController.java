@@ -59,7 +59,7 @@ public class SensorController {
         return new Result(true, "get success", sensor);
     }
 
-    @GetMapping(path = "/")
+    @GetMapping(path = "")
     public Result getAllSensors() {
         List<Sensor> sensors = sensorService.findAll();
         if (sensors == null || sensors.size() == 0) {
@@ -109,6 +109,7 @@ public class SensorController {
         return new Result(true, "detele success", null);
     }
 
+    //----------//
     @GetMapping(path = "/classify/{id}")
     public Result getSensorByClassifyId(@PathVariable("id") int classify_id) {//获取某一分类下的所有传感器
         SensorClassify sensorClassify = sensorClassifyService.findById(classify_id);
@@ -129,6 +130,15 @@ public class SensorController {
             return new Result(false, "gateway not exist", null);
         }
         List<Sensor> sensors = sensorService.findByGatewayId(gateway_id);
+        if (sensors == null || sensors.isEmpty()) {
+            return new Result(false, "sensors not exist", null);
+        }
+        return new Result(true, "get success", sensors);
+    }
+
+    @GetMapping(path = "/gateway-classify")
+    public Result getSensorByGatewayIdAndClassifyId(Integer gateway_id, Integer classify_id) {//获取某一网关下的某一类型传感器
+        List<Sensor> sensors = sensorService.findByGatewayIdAndClassifyId(gateway_id, classify_id);
         if (sensors == null || sensors.isEmpty()) {
             return new Result(false, "sensors not exist", null);
         }

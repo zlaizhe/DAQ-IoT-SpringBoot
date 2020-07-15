@@ -1,99 +1,295 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>传感网络（网关分类）</title>
-    <script type="text/javascript" src="../js/jquery-3.4.1.min.js"></script>
-    <script type="text/javascript" src="../js/echarts.min.js"></script>
-    <script type="text/javascript">
-        $(function () {
-            var myChart = echarts.init($("#container")[0]);//这里要使用js的Dom对象
-            myChart.showLoading();
+    <title>传感网络</title>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!--axios-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="../js/echarts.min.js"></script>
+    <style>
+        /*container*/
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            line-height: 60px;
+        }
 
-            var data2 = {name: "服务器", children: []};
-            var data = {name: "服务器", children: []};
+        .el-aside {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            line-height: 200px;
+        }
 
-            $.get("../api/gateway", {withSensors: true}, function (responseData) {
-                myChart.hideLoading();
-                var gateways = responseData.data;
-                for (var i = 0; i < gateways.length; i++) {
-                    var gname = gateways[i].description + "(gid=" + gateways[i].id + ")";
-                    var gchildren = [];
-                    var sensors = gateways[i].sensors;
-                    for (var j = 0; j < sensors.length; j++) {
-                        var sname = sensors[j].description + "(sid=" + sensors[j].id + ")";
-                        var schildren = null;
-                        gchildren.push({name: sname, children: schildren});
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+            /*line-height: 160px;*/
+        }
+
+        body > .el-container {
+            margin-bottom: 40px;
+        }
+
+        .el-container:nth-child(5) .el-aside,
+        .el-container:nth-child(6) .el-aside {
+            line-height: 260px;
+        }
+
+        .el-container:nth-child(7) .el-aside {
+            line-height: 320px;
+        }
+
+        /**/
+        .el-carousel__item h3 {
+            color: #475669;
+            font-size: 14px;
+            opacity: 0.75;
+            line-height: 150px;
+            margin: 0;
+        }
+
+        .el-carousel__item:nth-child(2n) {
+            background-color: #99a9bf;
+        }
+
+        .el-carousel__item:nth-child(2n+1) {
+            background-color: #d3dce6;
+        }
+
+        /**/
+        .el-row {
+            margin-bottom: 20px;
+
+        &
+        :last-child {
+            margin-bottom: 0;
+        }
+
+        }
+        .el-col {
+            border-radius: 4px;
+        }
+
+        .bg-purple-dark {
+            background: #99a9bf;
+        }
+
+        .bg-purple {
+            background: #d3dce6;
+        }
+
+        .bg-purple-light {
+            background: #e5e9f2;
+        }
+
+        .grid-content {
+            border-radius: 4px;
+            min-height: 100px;
+        }
+
+        .row-bg {
+            padding: 10px 0;
+            background-color: #f9fafc;
+        }
+    </style>
+</head>
+<body style="margin: 0">
+<div id="app">
+    <el-container>
+        <el-header style="padding-left: 0;padding-right: 0;">
+            <el-menu
+                    :default-active="activeIndex"
+                    class="el-menu-demo"
+                    mode="horizontal"
+                    @select="handleSelect"
+                    background-color="#545c64"
+                    text-color="#fff"
+                    text-align="center"
+                    active-text-color="#ffd04b"
+                    style="width:100%;">
+                <el-menu-item index="1" onclick="javascript:location.href='../index.html'">首页</el-menu-item>
+                <el-menu-item index="2">自定义</el-menu-item>
+                <el-menu-item index="3" disabled>消息中心</el-menu-item>
+                <el-menu-item index="4"><a href="https://www.ele.me" target="_blank">订单管理</a></el-menu-item>
+                <el-submenu index="5">
+                    <template slot="title">{{loginUserInfo}}</template>
+                    <el-menu-item index="2-1" onclick="javascript:location.href='./basicInformation.html'">个人信息
+                    </el-menu-item>
+                    <el-menu-item index="2-2" onclick="javascript:location.href='./changePassword.html'">修改密码
+                    </el-menu-item>
+                    <el-menu-item index="2-3" v-on:click="exit">退出登录</el-menu-item>
+                </el-submenu>
+            </el-menu>
+        </el-header>
+        <el-container>
+            <el-aside width="15%"></el-aside>
+            <el-main>
+                <el-tabs type="border-card">
+                    <el-tab-pane label="网关划分">
+                        <div id="container1" style="height: 600px;width: 800px"></div>
+                    </el-tab-pane>
+                    <el-tab-pane label="分类划分">
+                        <div id="container2" style="height: 600px;width: 800px"></div>
+                    </el-tab-pane>
+                </el-tabs>
+            </el-main>
+            <el-aside width="15%"></el-aside>
+        </el-container>
+        <el-footer>© 2019-2020 . Powered by CUG |
+            <el-link type="primary" href="/api/address" :underline="false">服务器状态</el-link>
+            |
+            <el-link type="primary" href="/api/home" :underline="false">测试API</el-link>
+        </el-footer>
+    </el-container>
+</div>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            activeIndex: '1',
+            url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
+            loginUserInfo: '游客',
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            exit() {
+                var that = this;
+                axios.get("/api/user/exit").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.$message({type: 'success', message: '已退出登录'});
+                        location.href = '/html/login.html';
+                    } else {
+                        that.$message({type: 'warning', message: '您尚未登录'});
                     }
-                    data.children.push({name: gname, children: gchildren});
-                }
-                refreshEcharts(myChart, data, data2);
-            });
-
-            $.get("../api/classify", {withSensors: true}, function (responseData) {
-                myChart.hideLoading();
-                var classifys = responseData.data;
-                for (var i = 0; i < classifys.length; i++) {
-                    var cname = classifys[i].name + "(cid=" + classifys[i].id + ")";
-                    var cchildren = [];
-                    var sensors = classifys[i].sensors;
-                    for (var j = 0; j < sensors.length; j++) {
-                        var sname = sensors[j].description + "(sid=" + sensors[j].id + ")";
-                        var schildren = null;
-                        cchildren.push({name: sname, children: schildren});
+                });
+            },
+            getLoginUser() {
+                var that = this;
+                axios.get("/api/user/info").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        var data = result.data;
+                        that.loginUserInfo = data.nickname == null ? data.username : data.nickname;
                     }
-                    data2.children.push({name: cname, children: cchildren});
+                });
+            },
+            refreshEcharts1(myChart, data) {
+                myChart.setOption(option = {
+                    tooltip: {trigger: 'item', triggerOn: 'mousemove'},
+                    legend: {
+                        top: '2%',
+                        left: '3%',
+                        orient: 'vertical',
+                        data: [{name: 'gateway', icon: 'rectangle'}],
+                        borderColor: '#c23531'
+                    },
+                    series: [{
+                        type: 'tree',
+                        name: 'gateway',
+                        data: [data],
+                        top: '5%',
+                        left: '30%',
+                        bottom: '2%',
+                        right: '30%',
+                        symbolSize: 16,
+                        label: {position: 'left', verticalAlign: 'middle', align: 'right'},
+                        leaves: {label: {position: 'right', verticalAlign: 'middle', align: 'left'}},
+                        expandAndCollapse: true,
+                        animationDuration: 550,
+                        animationDurationUpdate: 750
+                    }]
+                });
+            },
+            refreshEcharts2(myChart, data2) {
+                myChart.setOption(option = {
+                    tooltip: {trigger: 'item', triggerOn: 'mousemove'},
+                    legend: {
+                        top: '2%',
+                        left: '3%',
+                        orient: 'vertical',
+                        data: [{name: 'classify', icon: 'rectangle'}],
+                        borderColor: '#c23531'
+                    },
+                    series: [{
+                        type: 'tree',
+                        name: 'classify',
+                        data: [data2],
+                        top: '20%',
+                        left: '36%',
+                        bottom: '22%',
+                        right: '36%',
+                        symbolSize: 16,
+                        label: {position: 'left', verticalAlign: 'middle', align: 'right'},
+                        leaves: {label: {position: 'right', verticalAlign: 'middle', align: 'left'}},
+                        expandAndCollapse: true,
+                        animationDuration: 550,
+                        animationDurationUpdate: 750
+                    }]
+                });
+            }
+        }
+    });
+
+
+    window.onload = function () {
+        app.getLoginUser();
+
+        var myChart = echarts.init(document.getElementById("container1"));//这里要使用js的Dom对象
+        myChart.showLoading();
+        var data = {name: "服务器", children: []};
+        var data2 = {name: "服务器", children: []};
+
+        axios.get("/api/gateway?withSensors=true").then(function (response) {
+            myChart.hideLoading();
+            var result = response.data;
+            var gateways = result.data;
+            for (var i = 0; i < gateways.length; i++) {
+                var gname = gateways[i].description + "(gid=" + gateways[i].id + ")";
+                var gchildren = [];
+                var sensors = gateways[i].sensors;
+                for (var j = 0; j < sensors.length; j++) {
+                    var sname = sensors[j].description + "(sid=" + sensors[j].id + ")";
+                    var schildren = null;
+                    gchildren.push({name: sname, children: schildren});
                 }
-                refreshEcharts(myChart, data, data2);
-            });
+                data.children.push({name: gname, children: gchildren});
+            }
+            app.refreshEcharts1(myChart, data);
         });
 
-        function refreshEcharts(myChart, data, data2) {
-            myChart.setOption(option = {
-                tooltip: {trigger: 'item', triggerOn: 'mousemove'},
-                legend: {
-                    top: '2%',
-                    left: '3%',
-                    orient: 'vertical',
-                    data: [{name: 'gateway', icon: 'rectangle'}, {name: 'classify', icon: 'rectangle'}],
-                    borderColor: '#c23531'
-                },
-                series: [{
-                    type: 'tree',
-                    name: 'gateway',
-                    data: [data],
-                    top: '5%',
-                    left: '7%',
-                    bottom: '2%',
-                    right: '60%',
-                    symbolSize: 14,
-                    label: {position: 'left', verticalAlign: 'middle', align: 'right'},
-                    leaves: {label: {position: 'right', verticalAlign: 'middle', align: 'left'}},
-                    expandAndCollapse: true,
-                    animationDuration: 550,
-                    animationDurationUpdate: 750
-                }, {
-                    type: 'tree',
-                    name: 'classify',
-                    data: [data2],
-                    top: '20%',
-                    left: '60%',
-                    bottom: '22%',
-                    right: '18%',
-                    symbolSize: 14,
-                    label: {position: 'left', verticalAlign: 'middle', align: 'right'},
-                    leaves: {label: {position: 'right', verticalAlign: 'middle', align: 'left'}},
-                    expandAndCollapse: true,
-                    animationDuration: 550,
-                    animationDurationUpdate: 750
-                }]
-            });
-        }
-    </script>
-</head>
-<body style="height: 100%; margin: 0">
-<h2 style="text-align: center">传感网络</h2>
-<hr>
-<div id="container" style="height: 100%"></div>
+        axios.get("/api/classify?withSensors=true").then(function (response) {
+            var myChart = echarts.init(document.getElementById("container2"));//这里要使用js的Dom对象
+            myChart.hideLoading();
+            var result = response.data;
+            var classifys = result.data;
+            for (var i = 0; i < classifys.length; i++) {
+                var cname = classifys[i].name + "(cid=" + classifys[i].id + ")";
+                var cchildren = [];
+                var sensors = classifys[i].sensors;
+                for (var j = 0; j < sensors.length; j++) {
+                    var sname = sensors[j].description + "(sid=" + sensors[j].id + ")";
+                    var schildren = null;
+                    cchildren.push({name: sname, children: schildren});
+                }
+                data2.children.push({name: cname, children: cchildren});
+            }
+            app.refreshEcharts2(myChart, data2);
+        });
+    }
+</script>
 </body>
 </html>

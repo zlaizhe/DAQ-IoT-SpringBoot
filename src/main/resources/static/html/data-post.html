@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>模拟传感器数据提交</title>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!--axios-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="../js/dateformat.js"></script>
+    <style>
+        /*container*/
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            line-height: 60px;
+        }
+
+        .el-aside {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            line-height: 200px;
+        }
+
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+            /*line-height: 160px;*/
+        }
+
+        body > .el-container {
+            margin-bottom: 40px;
+        }
+
+        .el-container:nth-child(5) .el-aside,
+        .el-container:nth-child(6) .el-aside {
+            line-height: 260px;
+        }
+
+        .el-container:nth-child(7) .el-aside {
+            line-height: 320px;
+        }
+
+        /**/
+        .el-carousel__item h3 {
+            color: #475669;
+            font-size: 14px;
+            opacity: 0.75;
+            line-height: 150px;
+            margin: 0;
+        }
+
+        .el-carousel__item:nth-child(2n) {
+            background-color: #99a9bf;
+        }
+
+        .el-carousel__item:nth-child(2n+1) {
+            background-color: #d3dce6;
+        }
+
+        /**/
+        .el-row {
+            margin-bottom: 20px;
+
+        &
+        :last-child {
+            margin-bottom: 0;
+        }
+
+        }
+        .el-col {
+            border-radius: 4px;
+        }
+
+        .bg-purple-dark {
+            background: #99a9bf;
+        }
+
+        .bg-purple {
+            background: #d3dce6;
+        }
+
+        .bg-purple-light {
+            background: #e5e9f2;
+        }
+
+        .grid-content {
+            border-radius: 4px;
+            min-height: 100px;
+        }
+
+        .row-bg {
+            padding: 10px 0;
+            background-color: #f9fafc;
+        }
+    </style>
+</head>
+<body style="margin: 0">
+<div id="app">
+    <el-container>
+        <el-header style="padding-left: 0;padding-right: 0;">
+            <el-menu
+                    :default-active="activeIndex"
+                    class="el-menu-demo"
+                    mode="horizontal"
+                    @select="handleSelect"
+                    background-color="#545c64"
+                    text-color="#fff"
+                    text-align="center"
+                    active-text-color="#ffd04b"
+                    style="width:100%;">
+                <el-menu-item index="1" onclick="javascript:location.href='../index.html'">首页</el-menu-item>
+                <el-menu-item index="2">自定义</el-menu-item>
+                <el-menu-item index="3" disabled>消息中心</el-menu-item>
+                <el-menu-item index="4"><a href="https://www.ele.me" target="_blank">订单管理</a></el-menu-item>
+                <el-submenu index="5">
+                    <template slot="title">{{loginUserInfo}}</template>
+                    <el-menu-item index="2-1" onclick="javascript:location.href='./basicInformation.html'">个人信息
+                    </el-menu-item>
+                    <el-menu-item index="2-2" onclick="javascript:location.href='./changePassword.html'">修改密码
+                    </el-menu-item>
+                    <el-menu-item index="2-3" v-on:click="exit">退出登录</el-menu-item>
+                </el-submenu>
+            </el-menu>
+        </el-header>
+        <el-container>
+            <el-aside width="10%"></el-aside>
+            <el-main>
+                <el-alert title="本页面用于模拟传感器提交数据，蓝框表示传感器的未提交数据缓冲区" type="info" center show-icon></el-alert>
+                <el-divider></el-divider>
+                <el-row>
+                    <el-col :offset="4" :span="4">
+                        <el-input v-model="sensorId" v-bind:disabled="timerId!=null" placeholder="请输入传感器编号">
+                            <template slot="prepend">传感器编号</template>
+                        </el-input>
+                    </el-col>
+                    <el-col :offset="0" :span="4">
+                        <el-button type="primary" round v-on:click="startTimer()"
+                                   v-bind:icon="timerId==null?'el-icon-sort':'el-icon-loading'">开始/暂停采集数据
+                        </el-button>
+                    </el-col>
+                    <el-col :offset="0" :span="4">
+                        <el-select v-model="postType" placeholder="请选择提交方式">
+                            <el-option v-for="(item,i) in postTypes"
+                                       :key="i"
+                                       :label="item"
+                                       :value="i">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :offset="0" :span="4">
+                        <el-button type="success" round v-on:click="postData(postType)">提交传感器数据</el-button>
+                    </el-col>
+                </el-row>
+                <el-divider></el-divider>
+                <!--栅格-->
+                <el-row :gutter="10">
+                    <el-col :span="1">
+                        <el-progress type="circle" v-bind:percentage="num"></el-progress>
+                    </el-col>
+                    <el-col :offset="3" :span="18">
+                        <div style='font-size:32px;font-family: Helvetica Neue;border-radius:12px;background-color:lightskyblue;box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.2)'>
+                            <el-row v-for="row in Math.floor(datas.length/12)"><!--一行12个数据-->
+                                <el-col :span="2" v-for="col in 12" style="border: #00a1d6 1px solid">
+                                    {{datas[(row-1)*12+col-1].data}}
+                                </el-col>
+                            </el-row>
+                            <el-row v-if="datas.length%12!=0"><!--最后一行-->
+                                <el-col :span="2" v-for="col in datas.length%12" style="border: #00a1d6 1px solid">
+                                    {{datas[(datas.length - datas.length%12) + col-1].data}}
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </el-col>
+                </el-row>
+            </el-main>
+            <el-aside width="10%"></el-aside>
+        </el-container>
+        <el-footer>© 2019-2020 . Powered by CUG |
+            <el-link type="primary" href="/api/address" :underline="false">服务器状态</el-link>
+            |
+            <el-link type="primary" href="/api/home" :underline="false">测试API</el-link>
+        </el-footer>
+    </el-container>
+</div>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            activeIndex: '1',
+            url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
+            loginUserInfo: '游客',
+            //
+            postType: 0,
+            postTypes: ['提交单个数据', '批量提交'],
+            sensorId: null,
+            num: 0,
+            datas: [
+                // {data:1,time: '2020-9-9 12:32:22',sersor_id:1},
+            ],
+            //
+            timerId: null
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            exit() {
+                var that = this;
+                axios.get("/api/user/exit").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.$message({type: 'success', message: '已退出登录'});
+                        location.href = '/html/login.html';
+                    } else {
+                        that.$message({type: 'warning', message: '您尚未登录'});
+                    }
+                });
+            },
+            getLoginUser() {
+                var that = this;
+                axios.get("/api/user/info").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        var data = result.data;
+                        that.loginUserInfo = data.nickname == null ? data.username : data.nickname;
+                    }
+                });
+            },
+            postData(postType) {
+                var that = this;
+                var data;
+                if (postType == 0) {
+                    data = that.datas.shift();
+                } else {
+                    data = that.datas.splice(0, that.datas.length);
+                }
+                var urls = ["/api/data/receive", "/api/data/receiveAll"];
+                axios.post(urls[postType], data).then(function (response) { //提交json数据（请求体）
+                    var result = response.data;
+                    that.$message({type: result.status ? 'success' : 'error', message: result.message});
+                }, function (err) {
+                    console.log(err);
+                    that.$message({type: 'error', message: '数据不规范'});
+                });
+            },
+            startTimer() {//开始/暂停采集
+                var that = this;
+                if (that.sensorId == null) {
+                    that.$message({type: 'warning', message: '请输入传感器编号'});
+                    return;
+                }
+                if (that.timerId == null) {//未开始，点击开始
+                    if (that.datas.length > 0 && that.datas[0].sensor_id != that.sensorId) {//缓冲区有数据
+                        that.$confirm('输入的传感器编号和之前不同，需要清空缓冲区，是否清空?', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        }).then(() => {
+                            that.datas = [];//清空缓冲区，再开始
+                            that.timerId = setInterval(function () {
+                                var dat = Math.floor(100 * Math.random());
+                                that.num = dat;
+                                that.datas.push({data: dat, time: new Date().Format("yyyy-MM-dd hh:mm:ss"), sensor_id: that.sensorId});
+                            }, 1000);
+                        }).catch(() => {});
+                    }else{//缓冲区无数据，直接开始
+                        that.timerId = setInterval(function () {
+                            var dat = Math.floor(100 * Math.random());
+                            that.num = dat;
+                            that.datas.push({data: dat, time: new Date().Format("yyyy-MM-dd hh:mm:ss"), sensor_id: that.sensorId});
+                        }, 1000);
+                    }
+                } else {//已开始，点击暂停
+                    clearInterval(that.timerId);
+                    that.timerId = null;
+                }
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

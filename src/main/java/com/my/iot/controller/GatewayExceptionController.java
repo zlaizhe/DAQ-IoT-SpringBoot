@@ -31,11 +31,18 @@ public class GatewayExceptionController {
     }
 
     @GetMapping("/{timetamp}")
+    @Deprecated
     public Result getGatewayExceptionByTime(@PathVariable("timetamp") String timetamp) {//查询一段时间的异常，参数格式：时间戳1@时间戳2
         String[] s = timetamp.split("@");
         long dateFromTamp = Long.parseLong(s[0]);
         long dateToTamp = Long.parseLong(s[1]);
         List<GatewayException> gatewayExceptions = gatewayExceptionService.findByTime(new Date(dateFromTamp), new Date(dateToTamp));
+        return new Result(true, "get success", gatewayExceptions);
+    }
+
+    @GetMapping("/time")
+    public Result getGatewayExceptionByDateTime(Date datetime1, Date datetime2) {//查询一段时间的异常
+        List<GatewayException> gatewayExceptions = gatewayExceptionService.findByTime(datetime1, datetime2);
         return new Result(true, "get success", gatewayExceptions);
     }
 }

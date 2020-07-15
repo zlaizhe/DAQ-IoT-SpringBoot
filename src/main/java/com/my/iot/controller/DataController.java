@@ -121,13 +121,26 @@ public class DataController {
         sensorExceptionService.add(sensorException);
     }
 
-    @GetMapping(value = "/sensor/{id}")
+    @GetMapping(path = "/sensor/{id}")
     public Result getDataBySensorId(@PathVariable("id") int sensor_id) {//查询一个传感器下的所有数据
         Sensor sensor = sensorService.findById(sensor_id);
         if (sensor == null) {
             return new Result(false, "sensor not exist", null);
         }
         List<Data> datas = dataService.findBySensorId(sensor_id);
+        if (datas == null || datas.isEmpty()) {
+            return new Result(false, "the sensor has no data", null);
+        }
+        return new Result(true, "get success", datas);
+    }
+
+    @GetMapping(path = "/sensor", params = "sensorId")
+    public Result getDataBySensorIdInDatetime(Integer sensorId, Date datetime1, Date datetime2) {//查询一个传感器下的一段时间内的所有数据
+        Sensor sensor = sensorService.findById(sensorId);
+        if (sensor == null) {
+            return new Result(false, "sensor not exist", null);
+        }
+        List<Data> datas = dataService.findBySensorIdInDatetime(sensorId,datetime1,datetime2);
         if (datas == null || datas.isEmpty()) {
             return new Result(false, "the sensor has no data", null);
         }

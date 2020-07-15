@@ -7,11 +7,13 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="IoT-SpringBoot" />
+        <module name="DAQ-IoT-SpringBoot" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="DAQ-IoT-SpringBoot" options="-parameters" />
       <module name="IoT-SpringBoot" options="-parameters" />
     </option>
   </component>

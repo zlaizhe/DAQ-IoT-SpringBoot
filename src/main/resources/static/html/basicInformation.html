@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>修改密码</title>
+    <title>个人信息</title>
     <!-- import CSS -->
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <!-- import Vue before Element -->
@@ -134,7 +134,7 @@
         <el-container>
             <el-aside width="25%"></el-aside>
             <el-main>
-                <el-alert title="修改密码需要输入一次旧密码和两次新密码"
+                <el-alert title="用户名不可修改，修改基本信息后，请点击提交按钮"
                           type="info"
                           center
                           show-icon>
@@ -144,26 +144,22 @@
                     <el-avatar :size="150"
                                src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
                 </div>
-
                 <el-form :model="ruleForm" :rules="rules" ref="ruleForm" class="demo-ruleForm">
                     <el-form-item label="用户名" prop="username" label-width="100px">
                         <el-input disabled v-model="ruleForm.username"></el-input>
                     </el-form-item>
                     <el-form-item label="昵称" prop="nickname" label-width="100px">
-                        <el-input disabled v-model="ruleForm.nickname"></el-input>
+                        <el-input v-bind:disabled="disabled" v-model="ruleForm.nickname"></el-input>
                     </el-form-item>
-                    <el-form-item label="旧密码" prop="password" label-width="100px">
-                        <el-input type="password" v-model="ruleForm.password"></el-input>
+                    <el-form-item label="电话" prop="tel" label-width="100px">
+                        <el-input v-bind:disabled="disabled" v-model="ruleForm.tel"></el-input>
                     </el-form-item>
-                    <el-form-item label="新密码" prop="password" label-width="100px">
-                        <el-input type="password" v-model="ruleForm.newpassword"></el-input>
-                    </el-form-item>
-                    <el-form-item label="确认新密码" prop="repassword" label-width="100px">
-                        <el-input type="password" v-model="ruleForm.repassword"></el-input>
+                    <el-form-item label="邮箱" prop="email" label-width="100px">
+                        <el-input v-bind:disabled="disabled" v-model="ruleForm.email"></el-input>
                     </el-form-item>
                     <el-form-item>
+                        <el-button @click="disabled = !disabled">修改个人信息</el-button>
                         <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
-                        <el-button @click="resetForm('ruleForm')">重置</el-button>
                     </el-form-item>
                 </el-form>
             </el-main>
@@ -173,6 +169,8 @@
             <el-link type="primary" href="/api/address" :underline="false">服务器状态</el-link>
             |
             <el-link type="primary" href="/api/home" :underline="false">测试API</el-link>
+            |
+            <el-link type="primary" href="./regist.html" target="_blank">注册新用户</el-link>
         </el-footer>
     </el-container>
 </div>
@@ -183,26 +181,20 @@
             activeIndex: '1',
             url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
             loginUserInfo: '游客',
+            //loginUser: null,
+            //
+            disabled: true,
             ruleForm: {
-                username: 'h123',
-                nickname: '游客123',
-                password: '',
-                newpassword: '',
-                repassword: '',
+                username: '游客',
+                nickname: 'h123',
+                tel: '',
+                email: ''
             },
             rules: {
-                password: [
-                    {required: true, message: '请输入旧密码', trigger: 'blur'},
-                    {min: 4, max: 12, message: '长度在 4 到 12 个字符', trigger: 'blur'}
-                ],
-                newpassword: [
-                    {required: true, message: '请输入新密码', trigger: 'blur'},
-                    {min: 4, max: 12, message: '长度在 4 到 12 个字符', trigger: 'blur'}
-                ],
-                repassword: [
-                    {required: true, message: '请再次输入新密码', trigger: 'blur'},
-                    {min: 4, max: 12, message: '长度在 4 到 12 个字符', trigger: 'blur'}
-                ],
+                username: [
+                    {required: true, message: '请输入用户名', trigger: 'blur'},
+                    {min: 3, max: 12, message: '长度在 3 到 12 个字符', trigger: 'blur'}
+                ]
             },
         },
         methods: {
@@ -215,8 +207,7 @@
                     var result = response.data;
                     if (result.status) {
                         var data = result.data;
-                        that.ruleForm.username = data.username;
-                        that.ruleForm.nickname = data.nickname;
+                        that.ruleForm = data;
                         that.loginUserInfo = data.nickname == null ? data.username : data.nickname;
                     }
                 });
@@ -233,18 +224,24 @@
                     }
                 });
             },
-            changePassword(username,password, newpassword) {
+            changeBasicInformation(user) {
                 var that = this;
                 axios({
                     method: "post",
-                    url: "/api/user/password",
+                    url: "/api/user/modify",
                     params: {
-                        username: username,
-                        password: password,
-                        newPassword: newpassword
+                        nickname: user.nickname,
+                        email: user.email,
+                        tel: user.tel
                     },
                 }).then(function (response) {
-                    that.$message({type: response.data.status ? 'success' : 'error', message: response.data.message});
+                    if (response.data.status) {
+                        var result = response.data;
+                        that.ruleForm = result.data;
+                        that.$message({type: 'success', message: response.data.message});
+                    }else{
+                        that.$message({type: 'error', message: response.data.message});
+                    }
                 }, function (err) {
                     console.log(err);
                 });
@@ -253,26 +250,17 @@
             submitForm(formName) {
                 var that = this;
                 this.$refs[formName].validate((valid) => {
-                    if (valid) {
-                        if (that.ruleForm.newpassword != that.ruleForm.repassword) {
-                            this.$message({type: 'warning', message: '两次输入新密码不相同'});
-                            return false;
-                        } else {
-                            that.changePassword(that.ruleForm.username,that.ruleForm.password, that.ruleForm.newpassword);
-                        }
+                    if (!that.disabled && valid) {
+                        that.changeBasicInformation(that.ruleForm);
                     } else {
                         this.$message({type: 'warning', message: '输入信息不规范'});
                         return false;
                     }
                 });
             },
-            resetForm(formName) {
-                this.$refs[formName].resetFields();
-            }
         }
     });
     window.onload = app.getLoginUser();
-
 </script>
 </body>
 </html>

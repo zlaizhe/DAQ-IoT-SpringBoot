@@ -20,5 +20,7 @@ public interface SensorService {
 
     public List<Sensor> findByGatewayId(int gateway_id);
 
+    public List<Sensor> findByGatewayIdAndClassifyId(Integer gateway_id,Integer classify_id);
+
     public Sensor findByIdWithDatas(int id);
 }

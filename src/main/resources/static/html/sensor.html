@@ -3,156 +3,527 @@
 <head>
     <meta charset="UTF-8">
     <title>传感器</title>
-    <script src="../js/jquery-3.4.1.min.js"></script>
-    <script>
-        var url = "../api/sensor";
-
-        //使用ajax请求实习restful风格四种请求方式
-        function sendPostRequest() {
-            if (!window.confirm("确认添加？")) {
-                return;
-            }
-            var formParam = $("#form").serialize();
-            $.post(url, formParam, function (json) {
-                showResponseData(json);
-                if (json.status) {
-                    refreshForm(json);
-                }
-            });
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!--axios-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        /*container*/
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            line-height: 60px;
         }
 
-        function sendGetRequest() {
-            var id = $("#id").val();
-            $.get(url + "/" + id, {}, function (json) {
-                showResponseData(json);
-                if (json.status) {
-                    refreshForm(json);
-                }
-            });
+        .el-aside {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            line-height: 200px;
         }
 
-        function sendPutRequest() {
-            if (!window.confirm("确认更改？")) {
-                return;
-            }
-            var formParam = $("#form").serialize();
-            $.ajax({
-                url: url,
-                type: "PUT",
-                data: formParam,
-                success: function (json) {
-                    showResponseData(json);
-                    if (json.status) {
-                        refreshForm(json);
-                    }
-                }
-            });
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+            /*line-height: 160px;*/
         }
 
-        function sendDeleteRequest() {
-            if (!window.confirm("确认删除？")) {
-                return;
-            }
-            var id = $("#id").val();
-            $.ajax({
-                url: url + "/" + id,
-                type: "DELETE",
-                data: {},
-                success: function (json) {
-                    showResponseData(json);
-                    if (json.status) {
-                        clearForm();
-                    }
-                }
-            });
+        body > .el-container {
+            margin-bottom: 40px;
         }
 
-        function refreshForm(json) {
-            var classify = json.data;
-            $("#id").val(classify.id);
-            $("#description").val(classify.description);
-            $("#location").val(classify.location);
-            $("#factory").val(classify.factory);
-            $("#install_time").val(classify.install_time);
-            $("#produce_date").val(classify.produce_date);
-            $("#maintenance_time").val(classify.maintenance_time);
-            $("#gate_id").val(classify.gate_id);
-            $("#classify_id").val(classify.classify_id);
+        .el-container:nth-child(5) .el-aside,
+        .el-container:nth-child(6) .el-aside {
+            line-height: 260px;
         }
 
-        function clearForm() {
-            $("#id").val("");
-            $("#description").val("");
-            $("#location").val("");
-            $("#factory").val("");
-            $("#install_time").val("");
-            $("#produce_date").val("");
-            $("#maintenance_time").val("");
-            $("#gate_id").val("");
-            $("#classify_id").val("");
+        .el-container:nth-child(7) .el-aside {
+            line-height: 320px;
         }
 
-        function showResponseData(json) {
-            $("#status").html(json.status + "");
-            $("#status").css("color", json.status ? "green" : "red");
-            $("#message").html(json.message);
-
-            var str = "<tr><th>id</th><th>description</th><th>location</th><th>factory</th><th>install_time</th>" +
-                "<th>produce_date</th><th>maintenance_time</th><th>gate_id</th><th>classify_id</th></tr>";
-            var sensor = json.data;
-            if (sensor == null) {
-                //响应错误
-            } else if (sensor.length == undefined) {//只有单个数据
-                str += "<tr><td>" + sensor.id + "</td><td>" + sensor.description + "</td><td>" + sensor.location + "</td>" +
-                    "<td>" + sensor.factory + "</td><td>" + sensor.install_time + "</td><td>" + sensor.produce_date + "</td>" +
-                    "<td>" + sensor.maintenance_time + "</td><td>" + sensor.gate_id + "</td><td>" + sensor.classify_id + "</td></tr>";
-            } else {//类型为数组，有多个数据
-                for (var i = 0; i < sensor.length; i++) {
-                    var s = sensor[i];
-                    str += "<tr><td>" + s.id + "</td><td>" + s.description + "</td><td>" + s.location + "</td>" +
-                        "<td>" + s.factory + "</td><td>" + s.install_time + "</td><td>" + s.produce_date + "</td>" +
-                        "<td>" + s.maintenance_time + "</td><td>" + s.gate_id + "</td><td>" + s.classify_id + "</td></tr>";
-                }
-            }
-            $("#table").html(str);
+        /**/
+        .el-carousel__item h3 {
+            color: #475669;
+            font-size: 14px;
+            opacity: 0.75;
+            line-height: 150px;
+            margin: 0;
         }
-    </script>
+
+        .el-carousel__item:nth-child(2n) {
+            background-color: #99a9bf;
+        }
+
+        .el-carousel__item:nth-child(2n+1) {
+            background-color: #d3dce6;
+        }
+
+        /**/
+        .el-row {
+            margin-bottom: 20px;
+
+        &
+        :last-child {
+            margin-bottom: 0;
+        }
+
+        }
+        .el-col {
+            border-radius: 4px;
+        }
+
+        .bg-purple-dark {
+            background: #99a9bf;
+        }
+
+        .bg-purple {
+            background: #d3dce6;
+        }
+
+        .bg-purple-light {
+            background: #e5e9f2;
+        }
+
+        .grid-content {
+            border-radius: 4px;
+            min-height: 100px;
+        }
+
+        .row-bg {
+            padding: 10px 0;
+            background-color: #f9fafc;
+        }
+    </style>
 </head>
-<body>
-<h3>sensor表单</h3>
-<form id="form">
-    id：<input id="id" type="text" name="id" value="1">(添加时不必填写)<br>
-    description：<input id="description" type="text" name="description"><br>
-    location：<input id="location" type="text" name="location"><br>
-    factory：<input id="factory" type="text" name="factory"><br>
-    install_time：<input id="install_time" type="date" name="install_time"><br>
-    produce_date：<input id="produce_date" type="date" name="produce_date"><br>
-    maintenance_time：<input id="maintenance_time" type="date" name="maintenance_time"><br>
-    gate_id：<input id="gate_id" type="text" name="gate_id"><br>
-    classify_id：<input id="classify_id" type="text" name="classify_id"><br>
-</form>
-<hr>
-返回消息：
-<div>
-    <strong>
-        | status: <span id="status" style="color: red"></span> | message: <span style="color: blue" id="message"></span>|
-    </strong>
+<body style="margin: 0">
+<div id="app">
+    <el-container>
+        <el-header style="padding-left: 0;padding-right: 0;">
+            <el-menu :default-active="activeIndex"
+                     class="el-menu-demo"
+                     mode="horizontal"
+                     @select="handleSelect"
+                     background-color="#545c64"
+                     text-color="#fff"
+                     text-align="center"
+                     active-text-color="#ffd04b"
+                     style="width:100%;">
+                <el-menu-item index="1" onclick="javascript:location.href='../index.html'">首页</el-menu-item>
+                <el-menu-item index="2">自定义</el-menu-item>
+                <el-menu-item index="3" disabled>消息中心</el-menu-item>
+                <el-menu-item index="4"><a href="https://www.ele.me" target="_blank">订单管理</a></el-menu-item>
+                <el-submenu index="5">
+                    <template slot="title">{{loginUserInfo}}</template>
+                    <el-menu-item index="2-1" onclick="javascript:location.href='./basicInformation.html'">个人信息
+                    </el-menu-item>
+                    <el-menu-item index="2-2" onclick="javascript:location.href='./changePassword.html'">修改密码
+                    </el-menu-item>
+                    <el-menu-item index="2-3" v-on:click="exit">退出登录</el-menu-item>
+                </el-submenu>
+            </el-menu>
+        </el-header>
+        <el-container>
+            <el-aside width="10%"></el-aside>
+            <el-main>
+                <el-alert title="传感器管理页面，支持对每个传感器的管理操作" type="info" center show-icon>
+                </el-alert>
+                <el-divider></el-divider>
+                <el-row>
+                    <el-select v-model="selectId" clearable placeholder="请选择传感器分类">
+                        <el-option v-for="item in options" :key="item.id" :label="item.name" :value="item.id">
+                        </el-option>
+                    </el-select>
+                    <el-select v-model="selectId2" clearable placeholder="请选择网关">
+                        <el-option v-for="item in options2" :key="item.id" :label="item.description" :value="item.id">
+                        </el-option>
+                    </el-select>
+                    <el-button @click="dialogFormVisible3 = true" round>添加传感器分类</el-button>
+                    <el-button type="primary" @click="dialogFormVisible = true" round>添加传感器</el-button>
+                    <el-button type="success" @click="getSensorByGatewayIdAndClassifyId(selectId2, selectId)" round>查询传感器</el-button>
+                </el-row>
+                <el-divider></el-divider>
+                <el-table :data="tableData.slice((currentPage-1)*pageSize, currentPage*pageSize)" border style="width: 100%">
+                    <el-table-column prop="id" label="编号" width="120"></el-table-column>
+                    <el-table-column prop="description" label="详细信息" width="120"></el-table-column>
+                    <el-table-column prop="location" label="位置" width="180"></el-table-column>
+                    <el-table-column prop="factory" label="生产商" width="120"></el-table-column>
+                    <el-table-column prop="install_time" label="安装日期" width="120"></el-table-column>
+                    <el-table-column prop="produce_date" label="生产日期" width="120"></el-table-column>
+                    <el-table-column prop="maintenance_time" label="保修日期" width="120"></el-table-column>
+                    <el-table-column prop="classify_id" label="传感器类别编号" width="120"></el-table-column>
+                    <el-table-column prop="gate_id" label="所属网关编号" width="120"></el-table-column>
+                    <el-table-column label="操作" width="240">
+                        <template slot-scope="scope">
+                            <el-button @click="handleClick(scope.row)" type="info" size="small">查看</el-button>
+                            <el-button type="warning" @click="showUpdateSensorDialog(scope.row)" size="small">编辑</el-button>
+                            <el-button type="danger" @click="open(scope.row.id)" size="small">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <el-divider></el-divider>
+                <el-pagination background
+                               @size-change="handleSizeChange"
+                               @current-change="handleCurrentChange"
+                               :current-page.sync="currentPage"
+                               :page-size="pageSize"
+                               layout="total, prev, pager, next"
+                               :total="total">
+                </el-pagination>
+            </el-main>
+            <el-aside width="10%"></el-aside>
+        </el-container>
+        <el-footer>© 2019-2020 . Powered by CUG |
+            <el-link type="primary" href="/api/address" :underline="false">服务器状态</el-link>
+            |
+            <el-link type="primary" href="/api/home" :underline="false">测试API</el-link>
+        </el-footer>
+    </el-container>
+
+    <el-dialog title="添加传感器" :visible.sync="dialogFormVisible">
+        <el-form label-width="80px" :model="form">
+            <el-form-item label="详细信息" :label-width="formLabelWidth">
+                <el-input v-model="form.description"></el-input>
+            </el-form-item>
+            <el-form-item label="位置" :label-width="formLabelWidth">
+                <el-input v-model="form.location"></el-input>
+            </el-form-item>
+            <el-form-item label="生产商" :label-width="formLabelWidth">
+                <el-input v-model="form.factory"></el-input>
+            </el-form-item>
+            <el-form-item label="安装日期" :label-width="formLabelWidth">
+                <el-input v-model="form.install_time"></el-input>
+            </el-form-item>
+            <el-form-item label="生产日期" :label-width="formLabelWidth">
+                <el-input v-model="form.produce_date"></el-input>
+            </el-form-item>
+            <el-form-item label="保修日期" :label-width="formLabelWidth">
+                <el-input v-model="form.maintenance_time"></el-input>
+            </el-form-item>
+            <el-form-item label="传感器分类" :label-width="formLabelWidth">
+                <el-select v-model="form.classify_id" clearable placeholder="请选择传感器分类">
+                    <el-option v-for="item in options" :key="item.id" :label="item.name" :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="网关分类" :label-width="formLabelWidth">
+                <el-select v-model="form.gate_id" clearable placeholder="请选择传感器分类">
+                    <el-option v-for="item in options2" :key="item.id" :label="item.description" :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="addSensor(form)">添 加</el-button>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="添加传感器分类" :visible.sync="dialogFormVisible3">
+        <el-form label-width="80px" :model="form3">
+            <el-form-item label="分类名称" :label-width="formLabelWidth">
+                <el-input v-model="form3.classifyName"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible3 = false">取 消</el-button>
+            <el-button type="primary" @click="addSensorClassify(form3)">确 定</el-button>
+        </div>
+    </el-dialog>
+
+    <el-dialog title="更新传感器" :visible.sync="dialogFormVisible2">
+        <el-form label-width="80px" :model="form2">
+            <el-form-item label="编号" :label-width="formLabelWidth">
+                <el-input disabled v-model="form2.id"></el-input>
+            </el-form-item>
+            <el-form-item label="详细信息" :label-width="formLabelWidth">
+                <el-input v-model="form2.description"></el-input>
+            </el-form-item>
+            <el-form-item label="位置" :label-width="formLabelWidth">
+                <el-input v-model="form2.location"></el-input>
+            </el-form-item>
+            <el-form-item label="生产商" :label-width="formLabelWidth">
+                <el-input v-model="form2.factory"></el-input>
+            </el-form-item>
+            <el-form-item label="安装日期" :label-width="formLabelWidth">
+                <el-input v-model="form2.install_time"></el-input>
+            </el-form-item>
+            <el-form-item label="生产日期" :label-width="formLabelWidth">
+                <el-input v-model="form2.produce_date"></el-input>
+            </el-form-item>
+            <el-form-item label="保修日期" :label-width="formLabelWidth">
+                <el-input v-model="form2.maintenance_time"></el-input>
+            </el-form-item>
+            <el-form-item label="传感器分类" :label-width="formLabelWidth">
+                <el-select v-model="form2.classify_id" clearable placeholder="请选择传感器分类">
+                    <el-option v-for="item in options" :key="item.id" :label="item.name" :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="网关分类" :label-width="formLabelWidth">
+                <el-select v-model="form2.gate_id" clearable placeholder="请选择传感器分类">
+                    <el-option v-for="item in options2" :key="item.id" :label="item.description" :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible2 = false">取 消</el-button>
+            <el-button type="primary" @click="updateSensor(form2)">编 辑</el-button>
+        </div>
+    </el-dialog>
 </div>
-返回数据：
-<table border="1" id="table">
-</table>
-<hr>
-根据id查询传感器：
-<button onclick="sendGetRequest()">提交GET请求</button>
-(不填写id表示查询所有)<br>
-新添加一个传感器：
-<button onclick="sendPostRequest()">提交POST请求</button>
-(成功后回显信息)<br>
-根据id更新传感器：
-<button onclick="sendPutRequest()">提交PUT请求</button>
-(成功后回显信息)<br>
-根据id删除传感器：
-<button onclick="sendDeleteRequest()">提交DELETE请求</button>
-(成功后清空输入框)<br>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            activeIndex: '1',
+            url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
+            loginUserInfo: '游客',
+            //
+            options: [],
+            selectId: '',
+            options2:[],
+            selectId2:'',
+            //
+            tableData: [],
+            //
+            dialogFormVisible: false,
+            form: {//添加
+                description: '',
+                location: '',
+                factory: '',
+                install_time: '',
+                produce_date: '',
+                maintenance_time: '',
+                gate_id: null,
+                classify_id: null,
+            },
+            formLabelWidth: '120px',
+            //
+            currentPage: 1,
+            total: null,
+            pageSize: 5,
+            //
+            dialogFormVisible2: false,
+            form2: {//更新传感器
+                id: 1,
+                description: '',
+                location: '',
+                factory: '',
+                install_time: '',
+                produce_date: '',
+                maintenance_time: '',
+                gate_id: null,
+                classify_id: null,
+            },
+            //传感器分类
+            dialogFormVisible3: false,
+            form3: {
+                classifyName: ''
+            },
+        },
+        methods: {
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            exit() {
+                var that = this;
+                axios.get("/api/user/exit").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.$message({type: 'success', message: '已退出登录'});
+                        location.href = '/html/login.html';
+                    } else {
+                        that.$message({type: 'warning', message: '您尚未登录'});
+                    }
+                });
+            },
+            getLoginUser() {
+                var that = this;
+                axios.get("/api/user/info").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        var data = result.data;
+                        that.loginUserInfo = data.nickname == null ? data.username : data.nickname;
+                    }
+                });
+            },
+            handleClick(row) {
+                console.log(row);
+            },
+            //
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                console.log(`当前页: ${val}`);
+            },
+            //
+            getAllGateway() {
+                var that = this;
+                axios.get("/api/gateway").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.options2 = result.data;
+                    }
+                });
+            },
+            getAllClassify() {
+                var that = this;
+                axios.get("/api/classify").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.options = result.data;
+                    }
+                });
+            },
+            getAllSensors() {
+                var that = this;
+                axios.get("/api/sensor").then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.tableData = result.data;
+                        that.total = result.data.length;
+                    }
+                });
+            },
+            addSensorClassify(form) {
+                var that = this;
+                axios({
+                    method: "post",
+                    url: "/api/classify",
+                    params: {
+                        name: form.classifyName,
+                    },
+                }).then(function (response) {
+                    if (response.data.status) {
+                        that.$message({type: 'success', message: response.data.message});
+                        that.options.push(response.data.data);
+                        that.dialogFormVisible3 = false;//不显示添加框
+                    } else {
+                        that.$message({type: 'error', message: response.data.message});
+                    }
+                });
+            },
+            addSensor(form) {
+                var that = this;
+                axios({
+                    method: "post",
+                    url: "/api/sensor",
+                    params: {description: form.description, location: form.location, factory: form.factory,
+                        install_time: form.install_time, produce_date: form.produce_date,
+                        maintenance_time: form.maintenance_time, gate_id: form.gate_id,
+                        classify_id: form.classify_id,},
+                }).then(function (response) {
+                    if (response.data.status) {
+                        that.$message({type: 'success', message: response.data.message});
+                        that.tableData.push(response.data.data);
+                        that.dialogFormVisible = false;//不显示添加框
+                    } else {
+                        that.$message({type: 'error', message: response.data.message});
+                    }
+                },function (err) {
+                    that.$message({type: 'warning', message: '参数不规范'});
+                });
+            },
+            showUpdateSensorDialog(gateway) {
+                this.dialogFormVisible2 = true;
+                this.form2 = gateway;
+            },
+            updateSensor(form) {
+                var that = this;
+                axios({
+                    method: "put",
+                    url: "/api/sensor",
+                    params: {id: form.id, description: form.description, location: form.location,
+                        factory: form.factory, install_time: form.install_time, produce_date:
+                        form.produce_date, maintenance_time: form.maintenance_time, gate_id: form.gate_id,
+                        classify_id: form.classify_id,},
+                }).then(function (response) {
+                    if (response.data.status) {
+                        that.$message({type: 'success', message: response.data.message});
+                        var result = response.data;
+                        var updateIndex = 0;
+                        that.tableData.forEach(function (item, index) {
+                            if (item.id == result.data.id) {//找到修改的行在tableData数组中的索引
+                                updateIndex = index;
+                            }
+                        });
+                        that.tableData.splice(updateIndex, 1, result.data);//修改表格数据
+                        that.dialogFormVisible2 = false;//不显示更新框
+                    } else {
+                        that.$message({type: 'error', message: response.data.message});
+                    }
+                },function (err) {
+                    that.$message({type: 'warning', message: '参数不规范'});
+                });
+            },
+            open(sensorId) {
+                this.$confirm('此操作将永久删除该信息, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteSensor(sensorId);
+                }).catch(() => {});
+            },
+            deleteSensor(sensorId) {
+                var that = this;
+                axios({
+                    method: "delete",
+                    url: "/api/sensor/" + sensorId,
+                }).then(function (response) {
+                    if (response.data.status) {
+                        that.$message({type: 'success', message: response.data.message});
+                        var deleteIndex = 0;
+                        that.tableData.forEach(function (item, index) {
+                            if (item.id == sensorId) {//找到修改的行在tableData数组中的索引
+                                deleteIndex = index;
+                            }
+                        });
+                        that.tableData.splice(deleteIndex, 1);//删除表格数据
+                    } else {
+                        that.$message({type: 'error', message: response.data.message});
+                    }
+                });
+            },
+            getSensorByGatewayIdAndClassifyId(gateway_id, classify_id){
+                var that = this;
+                axios({
+                    method: "get",
+                    url: "/api/sensor/gateway-classify",
+                    params:{
+                        gateway_id: gateway_id==''?null:gateway_id,
+                        classify_id: classify_id==''?null:classify_id,
+                    }
+                }).then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        that.tableData = result.data;
+                        that.total = result.data.length;
+                    }else {
+                        that.tableData = [];
+                        that.total = 0;
+                        that.$message({type: 'warning', message: response.data.message});
+                    }
+                });
+            }
+        }
+    });
+    window.onload = function () {
+        app.getLoginUser();
+        app.getAllClassify();
+        app.getAllGateway();
+        app.getAllSensors();
+    }
+</script>
 </body>
 </html>

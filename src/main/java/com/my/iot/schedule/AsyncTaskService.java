@@ -27,14 +27,14 @@ public class AsyncTaskService implements InitializingBean, DisposableBean {
 
     @Override
     public void afterPropertiesSet() {//Bean的初始化方法
-        //System.out.println("初始化...");
+        System.out.println("线程池初始化...");
         executorService = Executors.newSingleThreadExecutor();
         start(DataServiceImpl.DATA_BUFFER);
     }
 
     @Override
     public void destroy() {
-        //System.out.println("销毁...");
+        System.out.println("线程池初始化...");
         shutdown();
     }
 

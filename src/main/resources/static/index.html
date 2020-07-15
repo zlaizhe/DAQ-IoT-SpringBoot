@@ -3,63 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <title>首页</title>
-</head>
-<body>
-<hr>
-<h2>IOT 数据采集和管理系统 SpringBoot版</h2>
-<hr>
-<h3>测试API</h3>
-<ul>
-    <li><a href="api/home">HOME</a></li>
-    <li><a href="api/address">查看部署服务器IP和端口</a></li>
-</ul>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import Vue before Element -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!--axios-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        /*container*/
+        .el-header, .el-footer {
+            background-color: #B3C0D1;
+            color: #333;
+            text-align: center;
+            line-height: 60px;
+        }
 
-<hr>
-<h3>user相关</h3>
-<ul>
-    <li><a href="html/regist.html">用户注册</a></li>
-    <li><a href="html/login.html">用户登录</a></li>
-    <li><a href="api/user/info">查看登录用户</a></li>
-    <li><a href="api/user/exit">退出登录</a></li>
-    <li><a href="html/changePassword.html">修改密码</a></li>
-    <li><a href="html/changeBasicInfomation.html">修改基本信息</a></li>
-</ul>
-<hr>
-<h3>Gateway相关</h3>
-<ul>
-    <li><a href="html/gateway.html">restful风格相关操作</a></li>
-</ul>
-<hr>
-<h3>SensorClassify相关</h3>
-<ul>
-    <li><a href="html/sensor_classify.html">restful风格相关操作</a></li>
-</ul>
-<hr>
-<h3>Sensor相关</h3>
-<ul>
-    <li><a href="html/sensor.html">restful风格相关操作</a></li>
-</ul>
-<hr>
-<h3>Data相关</h3>
-<ul>
-    <li><a href="html/data_post.html">模拟传感器数据提交</a></li>
-    <li><a href="html/data_sensor.html">查看传感器数据</a></li>
-</ul>
-<hr>
-<h3>Exception相关</h3>
-<ul>
-    <li><a href="html/exception.html">查看网关和传感器异常</a></li>
-</ul>
-<hr>
-<h3>传感网络</h3>
-<ul>
-    <li><a href="html/network.html">查看传感网络树状图</a></li>
-</ul>
-<hr>
-<h3>下载相关</h3>
-<ul>
-    <li><a href="html/download.html">进入下载页面</a></li>
-</ul>
-<hr>
+        .el-aside {
+            /*background-color: #D3DCE6;*/
+            color: #333;
+            text-align: center;
+            line-height: 200px;
+        }
+
+        .el-main {
+            background-color: #E9EEF3;
+            color: #333;
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+            /*line-height: 160px;*/
+        }
+
+        body > .el-container {
+            margin-bottom: 40px;
+        }
+
+        .el-container:nth-child(5) .el-aside,
+        .el-container:nth-child(6) .el-aside {
+            line-height: 260px;
+        }
+
+        .el-container:nth-child(7) .el-aside {
+            line-height: 320px;
+        }
+        /**/
+        .el-carousel__item h3 {
+            color: #475669;
+            font-size: 14px;
+            opacity: 0.75;
+            line-height: 150px;
+            margin: 0;
+        }
+
+        .el-carousel__item:nth-child(2n) {
+            background-color: #99a9bf;
+        }
+
+        .el-carousel__item:nth-child(2n+1) {
+            background-color: #d3dce6;
+        }
+        /**/
+        .el-row {
+            margin-bottom: 20px;
+        &:last-child {
+             margin-bottom: 0;
+         }
+        }
+        .el-col {
+            border-radius: 4px;
+        }
+        .bg-purple-dark {
+            background: #99a9bf;
+        }
+        .bg-purple {
+            background: #d3dce6;
+        }
+        .bg-purple-light {
+            background: #e5e9f2;
+        }
+        .grid-content {
+            border-radius: 12px;
+            min-height: 100px;
+            height:100px;
+            line-height: 100px;
+            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.5)
+        }
+        .row-bg {
+            padding: 10px 0;
+            background-color: #f9fafc;
+        }
+    </style>
+</head>
+<body style="margin: 0">
+<div id="app">
+<el-container>
+    <el-header style="padding-left: 0;padding-right: 0;">
+        <el-menu :default-active="activeIndex"
+                class="el-menu-demo"
+                mode="horizontal"
+                @select="handleSelect"
+                background-color="#545c64"
+                text-color="#fff"
+                text-align="center"
+                active-text-color="#ffd04b"
+                style="width:100%;">
+            <el-menu-item index="1" onclick="javascript:location.href='./index.html'">首页</el-menu-item>
+            <el-menu-item index="2">自定义</el-menu-item>
+            <el-menu-item index="3" disabled>消息中心</el-menu-item>
+            <el-menu-item index="4"><a href="https://www.ele.me" target="_blank">订单管理</a></el-menu-item>
+            <el-submenu index="5">
+                <template slot="title">{{loginUserInfo}}</template>
+                <el-menu-item index="2-1" onclick="javascript:location.href='./html/basicInformation.html'">个人信息</el-menu-item>
+                <el-menu-item index="2-2" onclick="javascript:location.href='./html/changePassword.html'">修改密码</el-menu-item>
+                <el-menu-item index="2-3" v-on:click="exit">退出登录</el-menu-item>
+            </el-submenu>
+        </el-menu>
+    </el-header>
+    <el-container>
+        <el-main>
+            <div class="block">
+                <el-carousel trigger="click" height="300px">
+                    <el-carousel-item v-for="item in 4" :key="item">
+                        <el-image :src="url"></el-image>
+                    </el-carousel-item>
+                </el-carousel>
+            </div>
+            <el-divider></el-divider>
+
+            <el-container>
+                <el-aside width="15%"></el-aside>
+                <el-main>
+                    <el-row>
+                        <el-col :span="11" :offset="1">
+                            <div class="grid-content bg-purple"
+                                 style="background-color: lightskyblue;" title="传感网络">
+                                <el-link style="width: 100%;height: auto;font-size: 32px;font-family:微软雅黑;color: #050513"
+                                         :underline="false" href="./html/network.html">
+                                    <i class="el-icon-s-operation">传感网络</i>
+                                </el-link>
+                            </div>
+                        </el-col>
+                        <el-col :span="10" :offset="1">
+                            <div class="grid-content bg-purple"
+                                 style="background-color: mediumseagreen;" title="网关">
+                                <el-link style="width: 100%;height: auto;font-size: 32px;font-family:微软雅黑;color: #050513"
+                                         :underline="false" href="./html/gateway.html">
+                                    <i class="el-icon-connection">网关</i>
+                                </el-link>
+                            </div>
+                        </el-col>
+                    </el-row>
+                    <el-row >
+                        <el-col :span="6" :offset="1">
+                            <div class="grid-content bg-purple"
+                                 style="background-color: deepskyblue;" title="传感器">
+                                <el-link style="width: 100%;height: auto;font-size: 32px;font-family:微软雅黑;color: #050513"
+                                         :underline="false" href="./html/sensor.html">
+                                    <i class="el-icon-cpu">传感器</i>
+                                </el-link>
+                            </div>
+                        </el-col>
+                        <el-col :span="7" :offset="1">
+                            <div class="grid-content bg-purple"
+                                 style="background-color: yellowgreen;" title="传感器|网关连接">
+                                <el-link style="width: 100%;height: auto;font-size: 32px;font-family:微软雅黑;color: #050513"
+                                         :underline="false" href="./html/data-post.html">
+                                    <i class="el-icon-menu">数据提交</i>
+                                </el-link>
+                            </div>
+                        </el-col>
+                        <el-col :span="7" :offset="1">
+                            <div class="grid-content bg-purple"
+                                 style="background-color: orange;" title="数据">
+                                <el-link style="width: 100%;height: auto;font-size: 32px;font-family:微软雅黑;color: #050513"
+                                         :underline="false" href="./html/data-sensor.html">
+                                    <i class="el-icon-s-data">数据</i>
+                                </el-link>
+                            </div>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="10" :offset="1">
+                            <div class="grid-content bg-purple"
+                                 style="background-color: orangered;" title="数据">
+                                <el-link style="width: 100%;height: auto;font-size: 32px;font-family:微软雅黑;color: #050513"
+                                         :underline="false" href="./html/exception.html">
+                                    <i class="el-icon-warning">异常</i>
+                                </el-link>
+                            </div>
+                        </el-col>
+                        <el-col :span="11" :offset="1">
+                            <div class="grid-content bg-purple"
+                                 style="background-color: lightgreen;" title="下载">
+                                <el-link style="width: 100%;height: auto;font-size: 32px;font-family:微软雅黑;color: #050513"
+                                         :underline="false" href="./html/download.html">
+                                    <i class="el-icon-download">下载</i>
+                                </el-link>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-main>
+                <el-aside width="15%"></el-aside>
+            </el-container>
+        </el-main>
+    </el-container>
+    <el-footer>© 2019-2020 . Powered by CUG |
+        <el-link type="primary" href="/api/address" :underline="false">服务器状态</el-link>
+        |
+        <el-link type="primary" href="/api/home" :underline="false">测试API</el-link>
+    </el-footer>
+</el-container>
+</div>
+<script>
+    var app = new Vue({
+        el:"#app",
+        data:{
+            activeIndex: '1',
+            url: 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3750747826,1051044969&fm=26&gp=0.jpg',
+            //
+            loginUserInfo: '游客',
+        },
+        methods:{
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            exit(){
+                var that = this;
+                axios.get("/api/user/exit").then(function (response) {
+                    var result = response.data;
+                    if(result.status){
+                        that.$message({type: 'success', message: '已退出登录'});
+                        location.href = '/html/login.html';
+                    }else{
+                        that.$message({type: 'warning', message: '您尚未登录'});
+                    }
+                });
+            },
+            getLoginUser() {
+                var that = this;
+                axios.get("/api/user/info").then(function (response) {
+                    var result = response.data;
+                    if(result.status){
+                        var data = result.data;
+                        that.loginUserInfo = data.nickname == null?data.username:data.nickname;
+                    }
+                });
+            },
+        }
+    });
+    window.onload=app.getLoginUser();
+</script>
 </body>
 </html>

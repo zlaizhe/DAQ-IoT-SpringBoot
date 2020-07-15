@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+    <meta charset="UTF-8">
+    <title>传感网络（网关分类）</title>
+    <script type="text/javascript" src="../js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../js/echarts.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            var myChart = echarts.init($("#container")[0]);//这里要使用js的Dom对象
+            myChart.showLoading();
+
+            var data2 = {name: "服务器", children: []};
+            var data = {name: "服务器", children: []};
+
+            $.get("../api/gateway", {withSensors: true}, function (responseData) {
+                myChart.hideLoading();
+                var gateways = responseData.data;
+                for (var i = 0; i < gateways.length; i++) {
+                    var gname = gateways[i].description + "(gid=" + gateways[i].id + ")";
+                    var gchildren = [];
+                    var sensors = gateways[i].sensors;
+                    for (var j = 0; j < sensors.length; j++) {
+                        var sname = sensors[j].description + "(sid=" + sensors[j].id + ")";
+                        var schildren = null;
+                        gchildren.push({name: sname, children: schildren});
+                    }
+                    data.children.push({name: gname, children: gchildren});
+                }
+                refreshEcharts(myChart, data, data2);
+            });
+
+            $.get("../api/classify", {withSensors: true}, function (responseData) {
+                myChart.hideLoading();
+                var classifys = responseData.data;
+                for (var i = 0; i < classifys.length; i++) {
+                    var cname = classifys[i].name + "(cid=" + classifys[i].id + ")";
+                    var cchildren = [];
+                    var sensors = classifys[i].sensors;
+                    for (var j = 0; j < sensors.length; j++) {
+                        var sname = sensors[j].description + "(sid=" + sensors[j].id + ")";
+                        var schildren = null;
+                        cchildren.push({name: sname, children: schildren});
+                    }
+                    data2.children.push({name: cname, children: cchildren});
+                }
+                refreshEcharts(myChart, data, data2);
+            });
+        });
+
+        function refreshEcharts(myChart, data, data2) {
+            myChart.setOption(option = {
+                tooltip: {trigger: 'item', triggerOn: 'mousemove'},
+                legend: {
+                    top: '2%',
+                    left: '3%',
+                    orient: 'vertical',
+                    data: [{name: 'gateway', icon: 'rectangle'}, {name: 'classify', icon: 'rectangle'}],
+                    borderColor: '#c23531'
+                },
+                series: [{
+                    type: 'tree',
+                    name: 'gateway',
+                    data: [data],
+                    top: '5%',
+                    left: '7%',
+                    bottom: '2%',
+                    right: '60%',
+                    symbolSize: 14,
+                    label: {position: 'left', verticalAlign: 'middle', align: 'right'},
+                    leaves: {label: {position: 'right', verticalAlign: 'middle', align: 'left'}},
+                    expandAndCollapse: true,
+                    animationDuration: 550,
+                    animationDurationUpdate: 750
+                }, {
+                    type: 'tree',
+                    name: 'classify',
+                    data: [data2],
+                    top: '20%',
+                    left: '60%',
+                    bottom: '22%',
+                    right: '18%',
+                    symbolSize: 14,
+                    label: {position: 'left', verticalAlign: 'middle', align: 'right'},
+                    leaves: {label: {position: 'right', verticalAlign: 'middle', align: 'left'}},
+                    expandAndCollapse: true,
+                    animationDuration: 550,
+                    animationDurationUpdate: 750
+                }]
+            });
+        }
+    </script>
+</head>
+<body style="height: 100%; margin: 0">
+<h2 style="text-align: center">传感网络</h2>
+<hr>
+<div id="container" style="height: 100%"></div>
+</body>
+</html>

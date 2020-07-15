@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>异常</title>
+    <title>传感器数据</title>
     <!-- import CSS -->
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <!-- import Vue before Element -->
@@ -12,6 +12,7 @@
     <!--axios-->
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="../js/dateformat.js"></script>
+    <script src="../js/echarts.min.js"></script>
     <style>
         /*container*/
         .el-header, .el-footer {
@@ -108,16 +109,15 @@
 <div id="app">
     <el-container>
         <el-header style="padding-left: 0;padding-right: 0;">
-            <el-menu
-                    :default-active="activeIndex"
-                    class="el-menu-demo"
-                    mode="horizontal"
-                    @select="handleSelect"
-                    background-color="#545c64"
-                    text-color="#fff"
-                    text-align="center"
-                    active-text-color="#ffd04b"
-                    style="width:100%;">
+            <el-menu :default-active="activeIndex"
+                     class="el-menu-demo"
+                     mode="horizontal"
+                     @select="handleSelect"
+                     background-color="#545c64"
+                     text-color="#fff"
+                     text-align="center"
+                     active-text-color="#ffd04b"
+                     style="width:100%;">
                 <el-menu-item index="1" onclick="javascript:location.href='../index.html'">首页</el-menu-item>
                 <el-menu-item index="2">自定义</el-menu-item>
                 <el-menu-item index="3" disabled>消息中心</el-menu-item>
@@ -133,44 +133,36 @@
             </el-menu>
         </el-header>
         <el-container>
-            <el-aside width="15%"></el-aside>
+            <el-aside width="10%"></el-aside>
             <el-main>
-                <el-alert title="本页面可分页查询/时间范围查询网关异常/传感器异常"
+                <el-alert title="查询传感器数据并绘制曲线图"
                           type="info"
                           center
                           show-icon>
                 </el-alert>
-                <el-tabs v-model="activeName" @tab-click="handleClick">
-                    <el-tab-pane label="分页查询" name="first">
+                <el-divider></el-divider>
+                <el-tabs v-model="activeName" @tab-click="handleClickTab">
+                    <el-tab-pane label="查询所有数据" name="first">
                         <el-row :gutter="0">
-                            <el-col :offset="8" :span="5">
-                                <el-select v-model="postType" placeholder="请选择异常类型">
-                                    <el-option v-for="(item,i) in postTypes"
-                                               :key="i"
-                                               :label="item"
-                                               :value="i">
-                                    </el-option>
-                                </el-select>
+                            <el-col :offset="8" :span="4">
+                                <el-input v-model="sensorId" placeholder="请输入传感器编号">
+                                    <template slot="prepend">传感器编号</template>
+                                </el-input>
                             </el-col>
-                            <el-col :offset="0" :span="3">
-                                <el-button type="success" round @click="getExceptionInfoByPage(postType,currentPage)">
-                                    分页查询
+                            <el-col :offset="0" :span="4">
+                                <el-button type="success" round @click="findSensorWithDatas(sensorId, false)">查询传感器数据
                                 </el-button>
                             </el-col>
                         </el-row>
                     </el-tab-pane>
-                    <el-tab-pane label="按照时间范围查询" name="second">
+                    <el-tab-pane label="按照时间段查询" name="second">
                         <el-row :gutter="0">
-                            <el-col :offset="4" :span="3">
-                                <el-select v-model="postType" placeholder="请选择异常类型">
-                                    <el-option v-for="(item,i) in postTypes"
-                                               :key="i"
-                                               :label="item"
-                                               :value="i">
-                                    </el-option>
-                                </el-select>
+                            <el-col :offset="5" :span="4">
+                                <el-input v-model="sensorId" placeholder="请输入传感器编号">
+                                    <template slot="prepend">传感器编号</template>
+                                </el-input>
                             </el-col>
-                            <el-col :offset="0" :span="9">
+                            <el-col :offset="0" :span="7">
                                 <el-date-picker
                                         v-model="dateTime"
                                         type="datetimerange"
@@ -179,8 +171,8 @@
                                         :default-time="['00:00:00']">
                                 </el-date-picker>
                             </el-col>
-                            <el-col :offset="0" :span="2">
-                                <el-button type="success" v-on:click="getExceptionByTime(postType, dateTime)" round>按照时间范围查询
+                            <el-col :offset="0" :span="3">
+                                <el-button type="success" round @click="findSensorWithDatas(sensorId, true)">查询传感器数据
                                 </el-button>
                             </el-col>
                         </el-row>
@@ -191,31 +183,46 @@
                 <el-table :data="tableData" border style="width: 100%">
                     <el-table-column prop="id" label="编号" width="120"></el-table-column>
                     <el-table-column prop="description" label="详细信息" width="120"></el-table-column>
-                    <el-table-column prop="time" label="时间" width="180"></el-table-column>
-                    <el-table-column v-if="postType==0" prop="gate_id" label="网关编号" width="120"></el-table-column>
-                    <el-table-column v-if="postType==1" prop="sensor_id" label="传感器编号" width="120"></el-table-column>
-
+                    <el-table-column prop="location" label="位置" width="180"></el-table-column>
+                    <el-table-column prop="factory" label="生产商" width="120"></el-table-column>
+                    <el-table-column prop="install_time" label="安装日期" width="120"></el-table-column>
+                    <el-table-column prop="produce_date" label="生产日期" width="120"></el-table-column>
+                    <el-table-column prop="maintenance_time" label="保修日期" width="120"></el-table-column>
+                    <el-table-column prop="classify_id" label="传感器类别编号" width="120"></el-table-column>
+                    <el-table-column prop="gate_id" label="所属网关编号" width="120"></el-table-column>
                     <el-table-column label="操作" width="120">
                         <template slot-scope="scope">
                             <el-button @click="handleClick(scope.row)" type="info" size="small">查看</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
-
                 <el-divider></el-divider>
-                <!--时间范围查询时不显示分页条-->
-                <el-pagination v-if="activeName=='first'" background
-                               @size-change="handleSizeChange"
-                               @current-change="handleCurrentChange"
-                               :current-page.sync="currentPage"
-                               :page-size="pageSize"
-                               layout="total, prev, pager, next"
-                               :total="total">
-                </el-pagination>
-                <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
-                <div id="container" style="height:400px;width: 600px"></div>
+
+                <el-container>
+                    <el-aside style="line-height: 60px" width="33%">
+                        <el-table :data="datasTable.slice((currentPage-1)*pageSize, currentPage*pageSize)" border>
+                            <el-table-column prop="id" label="编号" width="120"></el-table-column>
+                            <el-table-column prop="data" label="数据值" width="120"></el-table-column>
+                            <el-table-column prop="time" label="时间" width="180"></el-table-column>
+                        </el-table>
+                        <el-pagination background
+                                       @size-change="handleSizeChange"
+                                       @current-change="handleCurrentChange"
+                                       :current-page.sync="currentPage"
+                                       :page-size="pageSize"
+                                       layout="total, prev, pager, next"
+                                       :total="total">
+                        </el-pagination>
+                    </el-aside>
+                    <el-main>
+                        <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+                        <div id="container"
+                             style="margin-left:80px;height:400px;width: 800px;background-color: ghostwhite"></div>
+                    </el-main>
+                </el-container>
+
             </el-main>
-            <el-aside width="15%"></el-aside>
+            <el-aside width="10%"></el-aside>
         </el-container>
         <el-footer>© 2019-2020 . Powered by CUG |
             <el-link type="primary" href="/api/address" :underline="false">服务器状态</el-link>
@@ -232,43 +239,21 @@
             url: 'https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg',
             loginUserInfo: '游客',
             //
-            postType: 0,
-            postTypes: ['网关异常', '传感器异常'],
-            //
-            tableData: [{
-                id: 1,
-                description: '传感器1号',
-                time: 'xxxx年',
-                gate_id: 11,
-                sensor_id: 22,
-            }],
-            //
-            pageSize: 2,
-            currentPage: 1,
-            total: null,
+            sensorId: 1,
+            tableData: [],
+            datasTable: [],
             //
             activeName: 'first',
-            dateTime: []
+            dateTime: '',
+            //
+            currentPage: 1,
+            total: null,
+            pageSize: 8,
         },
         methods: {
             handleSelect(key, keyPath) {
                 console.log(key, keyPath);
             },
-            getLoginUser: function () {
-
-            },
-            handleClick(row) {
-                console.log(row);
-            },
-            //
-            handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
-            },
-            handleCurrentChange(val) {
-                console.log(`当前页: ${val}`);
-                this.getExceptionInfoByPage(this.postType, val);
-            },
-            //
             exit() {
                 var that = this;
                 axios.get("/api/user/exit").then(function (response) {
@@ -291,49 +276,98 @@
                     }
                 });
             },
+            handleClick(row) {
+                console.log(row);
+            },
+            handleClickTab(tab, event) {
+                console.log(tab, event);
+            },
             //
-            getExceptionByTime(postType, dateTime) {
+            findSensorWithDatas(sensorId, withTime) {
                 var that = this;
-                console.log(that.dateTime);
-                var datetime1 = dateTime[0];
-                var datetime2 = dateTime[1];
-                if (datetime1 == undefined || datetime2 == undefined) {
-                    that.$message({type: 'warning', message: '请输入时间范围'});
-                    return;
+                axios.get("/api/sensor/" + sensorId).then(function (response) {
+                    var result = response.data;
+                    if (result.status) {
+                        var data = result.data;
+                        that.tableData.splice(0, 1, data);
+                    } else {
+                        that.tableData = [];
+                        that.$message({type: 'warning', message: response.data.message});
+                    }
+                });
+
+                var datetime1, datetime2;
+                if (withTime) {
+                    if (that.dateTime == undefined || that.dateTime[0] == undefined || that.dateTime[1] == undefined) {
+                        that.$message({type: 'warning', message: '请输入时间范围'});
+                        return;
+                    } else {
+                        datetime1 = that.dateTime[0].Format("yyyy-MM-dd hh:mm:ss");
+                        datetime2 = that.dateTime[1].Format("yyyy-MM-dd hh:mm:ss");
+                    }
                 }
-                var exceptionType = ["gatewayException", "sensorException"];
                 axios({
                     method: "get",
-                    url: "/api/" + exceptionType[postType] + "/time",
-                    params: {
-                        datetime1: datetime1.Format("yyyy-MM-dd hh:mm:ss"),
-                        datetime2: datetime2.Format("yyyy-MM-dd hh:mm:ss"),
-                    },
+                    url: withTime ? "/api/data/sensor" : ("/api/data/sensor/" + sensorId),
+                    params: withTime ? {sensorId: sensorId, datetime1: datetime1, datetime2: datetime2} : {}
                 }).then(function (response) {
                     var result = response.data;
                     if (result.status) {
-                        that.tableData = result.data;
+                        that.datasTable = result.data;
+                        that.total = result.data.length;
+                        //画曲线图
+                        var xdata = [];
+                        var ydata = [];
+                        var datas = result.data;
+                        for (var i = 0; i < datas.length; i++) {
+                            xdata.push(datas[i].time);
+                            ydata.push(datas[i].data);
+                        }
+                        //刷新曲线图
+                        refrechEcharts(xdata, ydata);
+                    } else {
+                        that.datasTable = [];
+                        that.total = 0;
+                        refrechEcharts([], []);
+                        that.$message({type: 'warning', message: response.data.message});
                     }
                 });
             },
-            getExceptionInfoByPage(postType, page) {
-                var that = this;
-                var exceptionType = ["gatewayException", "sensorException"];
-                axios.get("/api/" + exceptionType[postType] + "/page/" + page).then(function (response) {
-                    var result = response.data;
-                    if (result.status) {
-                        that.tableData = result.data.list;
-                        that.total = result.data.count;
-                    }
-                });
-            }
+            //
+            handleSizeChange(val) {
+                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                console.log(`当前页: ${val}`);
+            },
+            //
         }
     });
 
+    function refrechEcharts(xdata, ydata) {
+        var dom = document.getElementById("container");
+        var myChart = echarts.init(dom);
+        var option = {
+            xAxis: {
+                type: 'category',
+                data: xdata
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: ydata,
+                type: 'line'
+            }]
+        };
+        myChart.setOption(option, true);
+    }
+
     window.onload = function () {
         app.getLoginUser();
-        app.getExceptionInfoByPage(app.postType, 1);
     }
+
+
 </script>
 </body>
 </html>

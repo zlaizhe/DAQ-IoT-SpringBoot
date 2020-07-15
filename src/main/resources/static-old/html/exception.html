@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取网关和传感器异常</title>
+    <script src="../js/jquery-3.4.1.min.js"></script>
+    <script>
+        //使用ajax请求实习restful风格四种请求方式
+        function sendGetRequest(url) {
+
+            $.get(url, {}, function (json) {
+                showResponseData(json);
+            });
+        }
+
+        function showResponseData(json) {
+            $("#status").html(json.status + "");
+            $("#status").css("color", json.status ? "green" : "red");
+            $("#message").html(json.message);
+
+
+            var d = json.data;
+            var page = $("#page").val();
+            if (page != "") {
+                d = json.data.list;
+            }
+
+            var str = "";
+            if (d != null) {//类型为数组，有多个数据
+                for (var i = 0; i < d.length; i++) {
+                    if (i == 0) {
+                        str = "<tr>";
+                        for (var key in d[0]) {
+                            str += "<th>" + key + "</th>"
+                        }
+                        str += "</tr>";
+                    }
+                    str += "<tr>";
+                    for (var key in d[i]) {
+                        str += "<td>" + d[i][key] + "</td>";
+                    }
+                    str += "</tr>";
+                }
+            }
+            $("#table").html(str);
+        }
+
+        $(function () {
+            $("#btn1").click(function () {
+                var op = $("#sel").val();
+                var url;
+                if (op == "网关异常") {
+                    url = "../api/gatewayException";
+                } else if (op == "传感器异常") {
+                    url = "../api/sensorException";
+                }
+                var page = $("#page").val();
+                if (page != "") {
+                    sendGetRequest(url + "/page/" + page);
+                } else {
+                    sendGetRequest(url);
+                }
+            });
+
+            $("#btn2").click(function () {
+                $("#page").val("");//不用页码
+                var op = $("#sel").val();
+                var url;
+                if (op == "网关异常") {
+                    url = "../api/gatewayException/";
+                } else if (op == "传感器异常") {
+                    url = "../api/sensorException/";
+                }
+                var param = new Date($("#from").val()).getTime() + "@" + new Date($("#to").val()).getTime();
+                sendGetRequest(url + param);
+            });
+        });
+    </script>
+</head>
+<body>
+<h3>Exception</h3>
+<select id="sel">
+    <option selected="selected">网关异常</option>
+    <option>传感器异常</option>
+</select><br>
+页码：<input id="page" type="number">(不填写为不分页，默认一页两项)
+<button id="btn1">提交GET请求</button>
+<br>
+根据时间戳查询：
+从<input id="from" type="datetime-local">到<input id="to" type="datetime-local">
+<button id="btn2">提交GET请求</button>
+<br>
+<hr>
+返回消息：
+<div>
+    <strong>
+        | status: <span id="status" style="color: red"></span> | message: <span style="color: blue" id="message"></span>|
+    </strong>
+</div>
+返回数据：
+<table border="1" id="table">
+</table>
+<hr>
+</body>
+</html>

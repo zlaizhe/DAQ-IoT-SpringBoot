@@ -29,6 +29,6 @@ public interface GatewayExceptionMapper {
     @Select("select * from tb_gateway_exception limit #{startIndex}, #{pageSize}")
     public List<GatewayException> findByPage(PageBean<GatewayException> pageBean);
 
-    @Select("select * from tb_gateway_exception where time >= #{from} and time <= #{to}")
+    @Select("select * from tb_gateway_exception where time between #{from} and #{to}")
     public List<GatewayException> findByTime(HashMap<String, Date> conditions);
 }

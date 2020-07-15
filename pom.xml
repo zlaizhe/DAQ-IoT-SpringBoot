@@ -31,6 +31,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!--热部署配置-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+        </dependency>
+
         <!--SpringBoot整合junit的起步依赖-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -49,7 +55,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.6</version>
+            <version>5.1.36</version>
         </dependency>
 
         <!--SpringBoot整合reds，redis的起步依赖-->

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>传感器</title>
+    <script src="../js/jquery-3.4.1.min.js"></script>
+    <script>
+        var url = "../api/sensor";
+
+        //使用ajax请求实习restful风格四种请求方式
+        function sendPostRequest() {
+            if (!window.confirm("确认添加？")) {
+                return;
+            }
+            var formParam = $("#form").serialize();
+            $.post(url, formParam, function (json) {
+                showResponseData(json);
+                if (json.status) {
+                    refreshForm(json);
+                }
+            });
+        }
+
+        function sendGetRequest() {
+            var id = $("#id").val();
+            $.get(url + "/" + id, {}, function (json) {
+                showResponseData(json);
+                if (json.status) {
+                    refreshForm(json);
+                }
+            });
+        }
+
+        function sendPutRequest() {
+            if (!window.confirm("确认更改？")) {
+                return;
+            }
+            var formParam = $("#form").serialize();
+            $.ajax({
+                url: url,
+                type: "PUT",
+                data: formParam,
+                success: function (json) {
+                    showResponseData(json);
+                    if (json.status) {
+                        refreshForm(json);
+                    }
+                }
+            });
+        }
+
+        function sendDeleteRequest() {
+            if (!window.confirm("确认删除？")) {
+                return;
+            }
+            var id = $("#id").val();
+            $.ajax({
+                url: url + "/" + id,
+                type: "DELETE",
+                data: {},
+                success: function (json) {
+                    showResponseData(json);
+                    if (json.status) {
+                        clearForm();
+                    }
+                }
+            });
+        }
+
+        function refreshForm(json) {
+            var classify = json.data;
+            $("#id").val(classify.id);
+            $("#description").val(classify.description);
+            $("#location").val(classify.location);
+            $("#factory").val(classify.factory);
+            $("#install_time").val(classify.install_time);
+            $("#produce_date").val(classify.produce_date);
+            $("#maintenance_time").val(classify.maintenance_time);
+            $("#gate_id").val(classify.gate_id);
+            $("#classify_id").val(classify.classify_id);
+        }
+
+        function clearForm() {
+            $("#id").val("");
+            $("#description").val("");
+            $("#location").val("");
+            $("#factory").val("");
+            $("#install_time").val("");
+            $("#produce_date").val("");
+            $("#maintenance_time").val("");
+            $("#gate_id").val("");
+            $("#classify_id").val("");
+        }
+
+        function showResponseData(json) {
+            $("#status").html(json.status + "");
+            $("#status").css("color", json.status ? "green" : "red");
+            $("#message").html(json.message);
+
+            var str = "<tr><th>id</th><th>description</th><th>location</th><th>factory</th><th>install_time</th>" +
+                "<th>produce_date</th><th>maintenance_time</th><th>gate_id</th><th>classify_id</th></tr>";
+            var sensor = json.data;
+            if (sensor == null) {
+                //响应错误
+            } else if (sensor.length == undefined) {//只有单个数据
+                str += "<tr><td>" + sensor.id + "</td><td>" + sensor.description + "</td><td>" + sensor.location + "</td>" +
+                    "<td>" + sensor.factory + "</td><td>" + sensor.install_time + "</td><td>" + sensor.produce_date + "</td>" +
+                    "<td>" + sensor.maintenance_time + "</td><td>" + sensor.gate_id + "</td><td>" + sensor.classify_id + "</td></tr>";
+            } else {//类型为数组，有多个数据
+                for (var i = 0; i < sensor.length; i++) {
+                    var s = sensor[i];
+                    str += "<tr><td>" + s.id + "</td><td>" + s.description + "</td><td>" + s.location + "</td>" +
+                        "<td>" + s.factory + "</td><td>" + s.install_time + "</td><td>" + s.produce_date + "</td>" +
+                        "<td>" + s.maintenance_time + "</td><td>" + s.gate_id + "</td><td>" + s.classify_id + "</td></tr>";
+                }
+            }
+            $("#table").html(str);
+        }
+    </script>
+</head>
+<body>
+<h3>sensor表单</h3>
+<form id="form">
+    id：<input id="id" type="text" name="id" value="1">(添加时不必填写)<br>
+    description：<input id="description" type="text" name="description"><br>
+    location：<input id="location" type="text" name="location"><br>
+    factory：<input id="factory" type="text" name="factory"><br>
+    install_time：<input id="install_time" type="date" name="install_time"><br>
+    produce_date：<input id="produce_date" type="date" name="produce_date"><br>
+    maintenance_time：<input id="maintenance_time" type="date" name="maintenance_time"><br>
+    gate_id：<input id="gate_id" type="text" name="gate_id"><br>
+    classify_id：<input id="classify_id" type="text" name="classify_id"><br>
+</form>
+<hr>
+返回消息：
+<div>
+    <strong>
+        | status: <span id="status" style="color: red"></span> | message: <span style="color: blue" id="message"></span>|
+    </strong>
+</div>
+返回数据：
+<table border="1" id="table">
+</table>
+<hr>
+根据id查询传感器：
+<button onclick="sendGetRequest()">提交GET请求</button>
+(不填写id表示查询所有)<br>
+新添加一个传感器：
+<button onclick="sendPostRequest()">提交POST请求</button>
+(成功后回显信息)<br>
+根据id更新传感器：
+<button onclick="sendPutRequest()">提交PUT请求</button>
+(成功后回显信息)<br>
+根据id删除传感器：
+<button onclick="sendDeleteRequest()">提交DELETE请求</button>
+(成功后清空输入框)<br>
+</body>
+</html>
